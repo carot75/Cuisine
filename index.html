@@ -9,6 +9,7 @@
     --bg: #101418;
     --fg: #f4f6f8;
     --muted: #8b98a3;
+    --card: #181f26;
     --cal1: #e5533d;
     --cal2: #3d7be5;
   }
@@ -22,21 +23,85 @@
     flex-direction: column;
     overflow: hidden;
   }
-  #colonne-gauche { position: absolute; top: 0; bottom: 0; left: 0; width: 38%; display: flex; flex-direction: column; }
-  #colonne-droite { position: absolute; top: 0; bottom: 0; right: 0; width: 62%; display: flex; flex-direction: column; }
-  #horloge { font-size: 9vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-  #date { font-size: 2.2vw; color: var(--muted); margin-top: 1vw; text-transform: capitalize; }
-  #meteo { margin-top: 3vw; }
-  #meteo-temp { font-size: 4.5vw; font-weight: 300; }
-  #meteo-desc { font-size: 1.8vw; color: var(--muted); margin-top: 0.5vw; }
-  #meteo-details { font-size: 1.4vw; color: var(--muted); margin-top: 0.5vw; }
-  #erreur-meteo { font-size: 1.4vw; color: #e5533d; display: none; margin-top: 1vw; }
+  #colonne-gauche {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 38%;
+    display: flex;
+    flex-direction: column;
+  }
+  #colonne-droite {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 62%;
+    display: flex;
+    flex-direction: column;
+  }
   #colonne-gauche > div { padding: 3vw 2vw; }
+  #horloge { font-size: 8.5vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  #date { font-size: 2vw; color: var(--muted); margin-top: 0.8vw; text-transform: capitalize; }
+
+  /* Météo actuelle */
+  #meteo { margin-top: 2.2vw; }
+  #meteo-temp { font-size: 4.2vw; font-weight: 300; line-height: 1.1; }
+  #meteo-desc { font-size: 1.6vw; color: var(--muted); margin-top: 0.4vw; }
+  #meteo-details { font-size: 1.25vw; color: var(--muted); margin-top: 0.4vw; }
+  #erreur-meteo { font-size: 1.3vw; color: #e5533d; display: none; margin-top: 0.8vw; }
+
+  /* Prévisions sur 3 jours */
+  #previsions-3j {
+    margin-top: 2vw;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7vw;
+  }
+  .jour-carte {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card);
+    padding: 0.8vw 1.1vw;
+    border-radius: 0.8vw;
+    font-size: 1.3vw;
+  }
+  .jour-nom {
+    width: 24%;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+  .jour-etat {
+    flex: 1;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 0.6vw;
+  }
+  .jour-pluie {
+    color: #6ea8fe;
+    font-size: 1.15vw;
+    margin-right: 0.8vw;
+    white-space: nowrap;
+  }
+  .jour-temp {
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  .jour-temp span {
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  /* Calendriers */
   .cal-titre { font-size: 1.6vw; font-weight: 700; padding: 1.2vw 1.5vw 0 1.5vw; display: flex; align-items: center; gap: 0.8vw; }
   .point { width: 1vw; height: 1vw; border-radius: 50%; }
   iframe { flex: 1; border: 0; width: 100%; }
   #pile { flex: 1; display: flex; flex-direction: column; padding: 0 1.5vw 1.5vw 1.5vw; }
-  .cal-bloc { flex: 1; display: flex; flex-direction: column; background: #181f26; border-radius: 1vw; overflow: hidden; }
+  .cal-bloc { flex: 1; display: flex; flex-direction: column; background: var(--card); border-radius: 1vw; overflow: hidden; }
   .cal-bloc + .cal-bloc { margin-top: 1vw; }
 </style>
 </head>
@@ -52,6 +117,7 @@
         <div id="meteo-details"></div>
         <div id="erreur-meteo">Météo indisponible</div>
       </div>
+      <div id="previsions-3j"></div>
     </div>
   </div>
 
@@ -71,23 +137,43 @@
 <script>
 /* ============================================================
    CONFIGURATION : modifie uniquement cette section.
-   1. Coordonnées GPS et nom de la ville pour la météo.
-   (sur https://www.coordonnees-gps.fr, cherche ta ville)
-   2. Les URL widget de tes deux calendriers iCloud (voir étapes ci-après).
    ============================================================ */
 const CONFIG = {
   latitude: 48.862725,
   longitude: 2.287592,
   ville: "Paris",
+  fuseauHoraire: "Europe/Paris",
+  nbJoursPrevision: 3, // 3 jours à partir d'aujourd'hui (0 = aujourd'hui, 1 = demain, etc.)
   titreCal1: "Capucine",
   titreCal2: "Clemence",
-  // Sur www.icloud.com > Calendrier, clic sur le calendrier partagé >
-  // "Calendrier public" > copie le lien webcal://... puis remplace
-  // "webcal" par "https". Colle l'URL à la fin, après "url=" :
   urlCal1: "https://calendarplaceholder.com/generate?url=https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbKlOAruzpSD4rwFGhx9g5CtJkeQiQ5PJZbH5BHzM2D5WjW6oRPA5zSTZa1G3_2omP4",
   urlCal2: "https://calendarplaceholder.com/generate?url=https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbJpPwPEuos8HZDEWsf74oGRLyyWbpSACEUkaH8GxmwzZFotlQNxqhPjZeMRiizib-E"
 };
 /* ================= FIN DE LA CONFIGURATION ================= */
+
+const DESCRIPTIONS_METEO = {
+  0: "Ciel dégagé",
+  1: "Peu nuageux",
+  2: "Partiellement nuageux",
+  3: "Couvert",
+  45: "Brouillard",
+  48: "Brouillard givrant",
+  51: "Bruine légère",
+  53: "Bruine",
+  55: "Bruine forte",
+  61: "Pluie faible",
+  63: "Pluie",
+  65: "Pluie forte",
+  71: "Neige faible",
+  73: "Neige",
+  75: "Neige forte",
+  80: "Averses",
+  81: "Averses fortes",
+  82: "Très fortes averses",
+  95: "Orage",
+  96: "Orage grêle",
+  99: "Orage forte grêle"
+};
 
 // Horloge et date
 function majHorloge() {
@@ -96,44 +182,82 @@ function majHorloge() {
     String(maintenant.getHours()).padStart(2, "0") + ":" +
     String(maintenant.getMinutes()).padStart(2, "0");
   document.getElementById("date").textContent =
-    maintenant.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    maintenant.toLocaleDateString("fr-FR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
 }
 setInterval(majHorloge, 5000);
 majHorloge();
 
-// Météo : API Open-Meteo, gratuite et sans clé
+// Transforme une date "AAAA-MM-JJ" en nom de jour court (ex: "lun.")
+function formaterJourCourt(dateIso, index) {
+  if (index === 0) return "Auj.";
+  const [annee, mois, jour] = dateIso.split("-").map(Number);
+  const dateObj = new Date(annee, mois - 1, jour);
+  return dateObj.toLocaleDateString("fr-FR", { weekday: "short" });
+}
+
+// Météo actuelle + prévisions sur 3 jours (API Open-Meteo)
 async function majMeteo() {
   try {
-    const url = "https://api.open-meteo.com/v1/forecast?latitude=" + CONFIG.latitude +
-      "&longitude=" + CONFIG.longitude +
+    const url =
+      "https://api.open-meteo.com/v1/forecast" +
+      "?latitude=" + encodeURIComponent(CONFIG.latitude) +
+      "&longitude=" + encodeURIComponent(CONFIG.longitude) +
       "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m" +
-      "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
-      "&timezone=Europe%2FParis";
+      "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
+      "&timezone=" + encodeURIComponent(CONFIG.fuseauHoraire);
+
     const reponse = await fetch(url);
+    if (!reponse.ok) throw new Error("Réponse réseau invalide");
     const donnees = await reponse.json();
 
-    const descriptions = {
-      0: "Ciel dégagé", 1: "Peu nuageux", 2: "Partiellement nuageux", 3: "Couvert",
-      45: "Brouillard", 48: "Brouillard givrant", 51: "Bruine légère", 53: "Bruine",
-      55: "Bruine forte", 61: "Pluie faible", 63: "Pluie", 65: "Pluie forte",
-      71: "Neige faible", 73: "Neige", 75: "Neige forte", 80: "Averses",
-      81: "Averses fortes", 82: "Très fortes averses", 95: "Orage", 96: "Orage grêle", 99: "Orage forte grêle"
-    };    document.getElementById("meteo-temp").textContent =
+    // 1. Météo du jour (instantanée + résumé du jour)
+    const codeActuel = donnees.current.weather_code;
+    document.getElementById("meteo-temp").textContent =
       Math.round(donnees.current.temperature_2m) + " °C";
     document.getElementById("meteo-desc").textContent =
-      CONFIG.ville + " ; " + (descriptions[donnees.current.weather_code] || "Météo inconnue");
+      CONFIG.ville + " · " + (DESCRIPTIONS_METEO[codeActuel] || "Météo inconnue");
     document.getElementById("meteo-details").textContent =
       "Min " + Math.round(donnees.daily.temperature_2m_min[0]) + "° / Max " +
-      Math.round(donnees.daily.temperature_2m_max[0]) + "° ; pluie " +
-      donnees.daily.precipitation_probability_max[0] + " % ; vent " +
+      Math.round(donnees.daily.temperature_2m_max[0]) + "° · Pluie " +
+      donnees.daily.precipitation_probability_max[0] + "% · Vent " +
       Math.round(donnees.current.wind_speed_10m) + " km/h";
+
+    // 2. Prévisions sur 3 jours
+    const conteneur3J = document.getElementById("previsions-3j");
+    conteneur3J.innerHTML = "";
+
+    const nbJours = Math.min(CONFIG.nbJoursPrevision, donnees.daily.time.length);
+    for (let i = 0; i < nbJours; i++) {
+      const dateIso = donnees.daily.time[i];
+      const codeJour = donnees.daily.weather_code[i];
+      const descJour = DESCRIPTIONS_METEO[codeJour] || "Variable";
+      const pluieJour = donnees.daily.precipitation_probability_max[i];
+      const minJour = Math.round(donnees.daily.temperature_2m_min[i]);
+      const maxJour = Math.round(donnees.daily.temperature_2m_max[i]);
+
+      const ligne = document.createElement("div");
+      ligne.className = "jour-carte";
+      ligne.innerHTML =
+        '<div class="jour-nom">' + formaterJourCourt(dateIso, i) + '</div>' +
+        '<div class="jour-etat">' + descJour + '</div>' +
+        '<div class="jour-pluie">' + pluieJour + '%</div>' +
+        '<div class="jour-temp">' + maxJour + '° <span>/ ' + minJour + '°</span></div>';
+
+      conteneur3J.appendChild(ligne);
+    }
+
     document.getElementById("erreur-meteo").style.display = "none";
   } catch (e) {
     document.getElementById("erreur-meteo").style.display = "block";
   }
 }
 majMeteo();
-setInterval(majMeteo, 10 * 60 * 1000); // toutes les 10 minutes
+setInterval(majMeteo, 10 * 60 * 1000);
 
 // Calendriers
 document.getElementById("titre-cal1").textContent = CONFIG.titreCal1;
@@ -141,7 +265,7 @@ document.getElementById("titre-cal2").textContent = CONFIG.titreCal2;
 document.getElementById("iframe-cal1").src = CONFIG.urlCal1;
 document.getElementById("iframe-cal2").src = CONFIG.urlCal2;
 
-// Rafraîchissement complet toutes les 3 heures (garde Safari propre)
+// Rafraîchissement complet toutes les 3 heures
 setTimeout(function () { location.reload(); }, 3 * 60 * 60 * 1000);
 </script>
 </body>
