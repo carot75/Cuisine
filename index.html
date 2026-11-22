@@ -47,8 +47,18 @@
 
   /* Météo actuelle */
   #meteo { margin-top: 2.2vw; }
+  #meteo-ligne-principale {
+    display: flex;
+    align-items: center;
+    gap: 1.2vw;
+  }
+  #meteo-icone .icone-svg {
+    width: 4.5vw;
+    height: 4.5vw;
+    display: block;
+  }
   #meteo-temp { font-size: 4.2vw; font-weight: 300; line-height: 1.1; }
-  #meteo-desc { font-size: 1.6vw; color: var(--muted); margin-top: 0.4vw; }
+  #meteo-desc { font-size: 1.6vw; color: var(--muted); margin-top: 0.5vw; }
   #meteo-details { font-size: 1.25vw; color: var(--muted); margin-top: 0.4vw; }
   #erreur-meteo { font-size: 1.3vw; color: #e5533d; display: none; margin-top: 0.8vw; }
 
@@ -73,18 +83,21 @@
     font-weight: 600;
     text-transform: capitalize;
   }
-  .jour-etat {
+  .jour-icone {
     flex: 1;
-    color: var(--muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 0 0.6vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .jour-icone .icone-svg {
+    width: 2.4vw;
+    height: 2.4vw;
+    display: block;
   }
   .jour-pluie {
     color: #6ea8fe;
     font-size: 1.15vw;
-    margin-right: 0.8vw;
+    margin-right: 0.9vw;
     white-space: nowrap;
   }
   .jour-temp {
@@ -112,7 +125,10 @@
       <div id="horloge">--:--</div>
       <div id="date"></div>
       <div id="meteo">
-        <div id="meteo-temp"></div>
+        <div id="meteo-ligne-principale">
+          <div id="meteo-icone"></div>
+          <div id="meteo-temp"></div>
+        </div>
         <div id="meteo-desc"></div>
         <div id="meteo-details"></div>
         <div id="erreur-meteo">Météo indisponible</div>
@@ -143,7 +159,7 @@ const CONFIG = {
   longitude: 2.287592,
   ville: "Paris",
   fuseauHoraire: "Europe/Paris",
-  nbJoursPrevision: 3, // 3 jours à partir d'aujourd'hui (0 = aujourd'hui, 1 = demain, etc.)
+  nbJoursPrevision: 3,
   titreCal1: "Capucine",
   titreCal2: "Clemence",
   urlCal1: "https://calendarplaceholder.com/generate?url=https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbKlOAruzpSD4rwFGhx9g5CtJkeQiQ5PJZbH5BHzM2D5WjW6oRPA5zSTZa1G3_2omP4",
@@ -151,29 +167,105 @@ const CONFIG = {
 };
 /* ================= FIN DE LA CONFIGURATION ================= */
 
-const DESCRIPTIONS_METEO = {
-  0: "Ciel dégagé",
-  1: "Peu nuageux",
-  2: "Partiellement nuageux",
-  3: "Couvert",
-  45: "Brouillard",
-  48: "Brouillard givrant",
-  51: "Bruine légère",
-  53: "Bruine",
-  55: "Bruine forte",
-  61: "Pluie faible",
-  63: "Pluie",
-  65: "Pluie forte",
-  71: "Neige faible",
-  73: "Neige",
-  75: "Neige forte",
-  80: "Averses",
-  81: "Averses fortes",
-  82: "Très fortes averses",
-  95: "Orage",
-  96: "Orage grêle",
-  99: "Orage forte grêle"
-};
+// Icônes SVG selon le code météo Open-Meteo
+function obtenirIconeMeteo(code) {
+  // Soleil (ciel dégagé)
+  if (code === 0) {
+    return `
+      <svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Soleil">
+        <circle cx="32" cy="32" r="13" fill="#f7b731"/>
+        <g stroke="#f7b731" stroke-width="4" stroke-linecap="round">
+          <line x1="32" y1="6" x2="32" y2="13"/>
+          <line x1="32" y1="51" x2="32" y2="58"/>
+          <line x1="6" y1="32" x2="13" y2="32"/>
+          <line x1="51" y1="32" x2="58" y2="32"/>
+          <line x1="13.6" y1="13.6" x2="18.6" y2="18.6"/>
+          <line x1="45.4" y1="45.4" x2="50.4" y2="50.4"/>
+          <line x1="50.4" y1="13.6" x2="45.4" y2="18.6"/>
+          <line x1="18.6" y1="45.4" x2="13.6" y2="50.4"/>
+        </g>
+      </svg>`;
+  }
+
+  // Soleil + nuage (peu nuageux / partiellement nuageux)
+  if (code === 1 || code === 2) {
+    return `
+      <svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Partiellement nuageux">
+        <circle cx="24" cy="23" r="10" fill="#f7b731"/>
+        <g stroke="#f7b731" stroke-width="3.2" stroke-linecap="round">
+          <line x1="24" y1="5" x2="24" y2="9"/>
+          <line x1="6" y1="23" x2="10" y2="23"/>
+          <line x1="11.3" y1="10.3" x2="14.1" y2="13.1"/>
+          <line x1="36.7" y1="10.3" x2="33.9" y2="13.1"/>
+        </g>
+        <path d="M22 47h24a10 10 0 0 0 1.4-19.9A13 13 0 0 0 22.5 24 9 9 0 0 0 22 47z" fill="#cfd8e3"/>
+      </svg>`;
+  }
+
+  // Nuage (couvert)
+  if (code === 3) {
+    return `
+      <svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Couvert">
+        <path d="M18 46h29a11 11 0 0 0 1.5-21.9A14.5 14.5 0 0 0 21.2 21 10 10 0 0 0 18 46z" fill="#b8c4d0"/>
+      </svg>`;
+  }
+
+  // Brouillard
+  if (code === 45 || code === 48) {
+    return `
+      <svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Brouillard">
+        <path d="M19 32h27a9.5 9.5 0 0 0 1.3-18.9A12.5 12.5 0 0 0 22.8 11 8.5 8.5 0 0 0 19 32z" fill="#9aa7b4"/>
+        <g stroke="#cfd8e3" stroke-width="3.5" stroke-linecap="round">
+          <line x1="14" y1="40" x2="50" y2="40"/>
+          <line x1="18" y1="48" x2="46" y2="48"/>
+        </g>
+      </svg>`;
+  }
+
+  // Pluie / bruine / averses (nuage + gouttes)
+  if (
+    (code >= 51 && code <= 65) ||
+    (code >= 80 && code <= 82)
+  ) {
+    return `
+      <svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Pluie">
+        <path d="M18 36h29a10.5 10.5 0 0 0 1.4-20.9A14 14 0 0 0 21.5 13 9.5 9.5 0 0 0 18 36z" fill="#9fb0c2"/>
+        <g fill="#5ca4ff">
+          <path d="M23 41c0 0-4 5.5-4 8a4 4 0 0 0 8 0c0-2.5-4-8-4-8z"/>
+          <path d="M34 43c0 0-4 5.5-4 8a4 4 0 0 0 8 0c0-2.5-4-8-4-8z"/>
+          <path d="M45 41c0 0-4 5.5-4 8a4 4 0 0 0 8 0c0-2.5-4-8-4-8z"/>
+        </g>
+      </svg>`;
+  }
+
+  // Neige
+  if (code >= 71 && code <= 75) {
+    return `
+      <svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Neige">
+        <path d="M18 35h29a10.5 10.5 0 0 0 1.4-20.9A14 14 0 0 0 21.5 12 9.5 9.5 0 0 0 18 35z" fill="#b8c4d0"/>
+        <g fill="#e8f3ff">
+          <circle cx="23" cy="45" r="3.2"/>
+          <circle cx="34" cy="49" r="3.2"/>
+          <circle cx="44" cy="45" r="3.2"/>
+        </g>
+      </svg>`;
+  }
+
+  // Orage
+  if (code >= 95) {
+    return `
+      <svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Orage">
+        <path d="M18 34h29a10.5 10.5 0 0 0 1.4-20.9A14 14 0 0 0 21.5 11 9.5 9.5 0 0 0 18 34z" fill="#7d8d9e"/>
+        <polygon points="34,32 25,46 32,46 29,57 41,42 34,42" fill="#ffd43b"/>
+      </svg>`;
+  }
+
+  // Icône par défaut
+  return `
+    <svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Météo">
+      <path d="M18 44h29a11 11 0 0 0 1.5-21.9A14.5 14.5 0 0 0 21.2 19 10 10 0 0 0 18 44z" fill="#b8c4d0"/>
+    </svg>`;
+}
 
 // Horloge et date
 function majHorloge() {
@@ -215,19 +307,19 @@ async function majMeteo() {
     if (!reponse.ok) throw new Error("Réponse réseau invalide");
     const donnees = await reponse.json();
 
-    // 1. Météo du jour (instantanée + résumé du jour)
+    // 1. Météo du jour
     const codeActuel = donnees.current.weather_code;
+    document.getElementById("meteo-icone").innerHTML = obtenirIconeMeteo(codeActuel);
     document.getElementById("meteo-temp").textContent =
       Math.round(donnees.current.temperature_2m) + " °C";
-    document.getElementById("meteo-desc").textContent =
-      CONFIG.ville + " · " + (DESCRIPTIONS_METEO[codeActuel] || "Météo inconnue");
+    document.getElementById("meteo-desc").textContent = CONFIG.ville;
     document.getElementById("meteo-details").textContent =
       "Min " + Math.round(donnees.daily.temperature_2m_min[0]) + "° / Max " +
       Math.round(donnees.daily.temperature_2m_max[0]) + "° · Pluie " +
       donnees.daily.precipitation_probability_max[0] + "% · Vent " +
       Math.round(donnees.current.wind_speed_10m) + " km/h";
 
-    // 2. Prévisions sur 3 jours
+    // 2. Prévisions sur 3 jours avec icônes
     const conteneur3J = document.getElementById("previsions-3j");
     conteneur3J.innerHTML = "";
 
@@ -235,7 +327,6 @@ async function majMeteo() {
     for (let i = 0; i < nbJours; i++) {
       const dateIso = donnees.daily.time[i];
       const codeJour = donnees.daily.weather_code[i];
-      const descJour = DESCRIPTIONS_METEO[codeJour] || "Variable";
       const pluieJour = donnees.daily.precipitation_probability_max[i];
       const minJour = Math.round(donnees.daily.temperature_2m_min[i]);
       const maxJour = Math.round(donnees.daily.temperature_2m_max[i]);
@@ -244,7 +335,7 @@ async function majMeteo() {
       ligne.className = "jour-carte";
       ligne.innerHTML =
         '<div class="jour-nom">' + formaterJourCourt(dateIso, i) + '</div>' +
-        '<div class="jour-etat">' + descJour + '</div>' +
+        '<div class="jour-icone">' + obtenirIconeMeteo(codeJour) + '</div>' +
         '<div class="jour-pluie">' + pluieJour + '%</div>' +
         '<div class="jour-temp">' + maxJour + '° <span>/ ' + minJour + '°</span></div>';
 
