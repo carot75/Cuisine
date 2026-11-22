@@ -15,7 +15,7 @@
     position: relative;
   }
 
-  /* Colonne gauche : horloge, date et météo */
+  /* Colonne gauche : horloge, date et meteo */
   #colonne-gauche {
     position: absolute;
     top: 0;
@@ -39,7 +39,7 @@
   #horloge { font-size: 5.8vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
   #date { font-size: 1.4vw; color: #8b98a3; margin-top: 0.4vw; text-transform: capitalize; }
 
-  /* Bloc météo actuelle */
+  /* Bloc meteo actuelle */
   #meteo { margin-top: 1.1vw; }
   #meteo-ligne-principale { display: table; }
   #meteo-icone {
@@ -63,7 +63,7 @@
   #meteo-details { font-size: 0.9vw; color: #8b98a3; margin-top: 0.2vw; }
   #erreur-meteo { font-size: 0.92vw; color: #e5533d; display: none; margin-top: 0.4vw; line-height: 1.35; }
 
-  /* Section météo heure par heure (juste sous la météo actuelle, avant les 7 jours) */
+  /* Section meteo heure par heure (juste sous la meteo actuelle, avant les 7 jours) */
   #meteo-horaire { margin-top: 0.85vw; }
   .titre-sous-bloc {
     font-size: 0.82vw;
@@ -115,7 +115,7 @@
     font-weight: 600;
   }
 
-  /* Prévisions sur 7 jours */
+  /* Previsions sur 7 jours */
   #previsions-7j { margin-top: 0.9vw; }
   .jour-carte {
     display: table;
@@ -207,7 +207,7 @@
   .pastille-capucine { background: #ff69b4; }
   .pastille-clemence { background: #ffd43b; }
 
-  /* En-tête des jours de la semaine */
+  /* En-tete des jours de la semaine */
   .jours-semaine-entete {
     display: table;
     width: 100%;
@@ -292,7 +292,7 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Retour à la ligne automatique pour afficher le détail des RDV en entier */
+  /* Retour a la ligne automatique pour afficher le detail des RDV en entier */
   .event-puce {
     font-size: 0.82vw;
     line-height: 1.22;
@@ -340,6 +340,7 @@
         <div id="meteo-details"></div>
         <div id="erreur-meteo">M&eacute;t&eacute;o indisponible</div>
       </div>
+      <!-- Section meteo heure par heure : juste sous la meteo actuelle et avant les 7 jours -->
       <div id="meteo-horaire"></div>
       <div id="previsions-7j"></div>
     </div>
@@ -383,7 +384,7 @@
 
 <script>
 /* ============================================================
-   CONFIGURATION : paramètres principaux de ton tableau de bord.
+   CONFIGURATION : parametres principaux du tableau de bord.
    ============================================================ */
 var CONFIG = {
   latitude: 48.862725,
@@ -391,8 +392,8 @@ var CONFIG = {
   ville: "Paris",
   fuseauHoraire: "Europe/Paris",
   nbJoursPrevision: 7,
-  pasHeuresMeteo: 1,          /* 1 = toutes les heures */
-  maxCreneauxHoraire: 24,     /* Jusqu'à 24 lignes pour couvrir toute la journée */
+  pasHeuresMeteo: 1,          /* 1 = toutes les heures a partir de l'heure actuelle */
+  maxCreneauxHoraire: 24,
   nbSemainesPlanning: 3,
   maxJoursEvenement: 31,
   maxOccurrencesRecurrence: 250,
@@ -404,11 +405,13 @@ var CONFIG = {
 };
 /* ================= FIN DE LA CONFIGURATION ================= */
 
+/* Extrait le nom de domaine d'une URL pour les messages d'erreur */
 function extraireHote(url) {
   var m = String(url || "").match(/^https?:\/\/([^\/?#]+)/i);
   return m ? m[1] : url;
 }
 
+/* Effectue une requete HTTP GET texte compatible ES5 */
 function requeteTexte(url, callback) {
   var hote = extraireHote(url);
   try {
@@ -419,14 +422,14 @@ function requeteTexte(url, callback) {
         if (xhr.status >= 200 && xhr.status < 300) {
           callback(null, xhr.responseText);
         } else if (xhr.status === 0) {
-          callback(new Error(hote + " : HTTP 0 (TLS/R\u00e9seau refus\u00e9)"), null);
+          callback(new Error(hote + " : HTTP 0 (TLS/Reseau refuse)"), null);
         } else {
           callback(new Error(hote + " : HTTP " + xhr.status), null);
         }
       }
     };
     xhr.onerror = function () {
-      callback(new Error(hote + " : erreur r\u00e9seau / TLS"), null);
+      callback(new Error(hote + " : erreur reseau / TLS"), null);
     };
     xhr.send();
   } catch (err) {
@@ -434,10 +437,12 @@ function requeteTexte(url, callback) {
   }
 }
 
+/* Ajoute un zero devant les chiffres inferieurs a 10 */
 function deuxChiffres(n) {
   return (n < 10 ? "0" : "") + n;
 }
 
+/* Retourne l'icone SVG correspondant au code meteo Open-Meteo */
 function obtenirIconeMeteo(code) {
   if (code === 0) {
     return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="13" fill="#f7b731"/><g stroke="#f7b731" stroke-width="4" stroke-linecap="round"><line x1="32" y1="6" x2="32" y2="13"/><line x1="32" y1="51" x2="32" y2="58"/><line x1="6" y1="32" x2="13" y2="32"/><line x1="51" y1="32" x2="58" y2="32"/><line x1="13.6" y1="13.6" x2="18.6" y2="18.6"/><line x1="45.4" y1="45.4" x2="50.4" y2="50.4"/><line x1="50.4" y1="13.6" x2="45.4" y2="18.6"/><line x1="18.6" y1="45.4" x2="13.6" y2="50.4"/></g></svg>';
@@ -454,4 +459,745 @@ function obtenirIconeMeteo(code) {
   if ((code >= 51 && code <= 65) || (code >= 80 && code <= 82)) {
     return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none"><path d="M18 36h29a10.5 10.5 0 0 0 1.4-20.9A14 14 0 0 0 21.5 13 9.5 9.5 0 0 0 18 36z" fill="#9fb0c2"/><g fill="#5ca4ff"><path d="M23 41c0 0-4 5.5-4 8a4 4 0 0 0 8 0c0-2.5-4-8-4-8z"/><path d="M34 43c0 0-4 5.5-4 8a4 4 0 0 0 8 0c0-2.5-4-8-4-8z"/><path d="M45 41c0 0-4 5.5-4 8a4 4 0 0 0 8 0c0-2.5-4-8-4-8z"/></g></svg>';
   }
-  if (code >= 71 && code <=
+  if (code >= 71 && code <= 75) {
+    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none"><path d="M18 35h29a10.5 10.5 0 0 0 1.4-20.9A14 14 0 0 0 21.5 12 9.5 9.5 0 0 0 18 35z" fill="#b8c4d0"/><g fill="#e8f3ff"><circle cx="23" cy="45" r="3.2"/><circle cx="34" cy="49" r="3.2"/><circle cx="44" cy="45" r="3.2"/></g></svg>';
+  }
+  if (code >= 95) {
+    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none"><path d="M18 34h29a10.5 10.5 0 0 0 1.4-20.9A14 14 0 0 0 21.5 11 9.5 9.5 0 0 0 18 34z" fill="#7d8d9e"/><polygon points="34,32 25,46 32,46 29,57 41,42 34,42" fill="#ffd43b"/></svg>';
+  }
+  return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none"><path d="M18 44h29a11 11 0 0 0 1.5-21.9A14.5 14.5 0 0 0 21.2 19 10 10 0 0 0 18 44z" fill="#b8c4d0"/></svg>';
+}
+
+var JOURS_SEMAINE_FR = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+var JOURS_COURTS_FR = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
+var MOIS_FR = [
+  "janvier", "f\u00e9vrier", "mars", "avril", "mai", "juin",
+  "juillet", "ao\u00fbt", "septembre", "octobre", "novembre", "d\u00e9cembre"
+];
+var MOIS_COURTS_FR = [
+  "janv.", "f\u00e9vr.", "mars", "avr.", "mai", "juin",
+  "juil.", "ao\u00fbt", "sept.", "oct.", "nov.", "d\u00e9c."
+];
+
+var CODES_JOUR_ICS = {
+  SU: 0,
+  MO: 1,
+  TU: 2,
+  WE: 3,
+  TH: 4,
+  FR: 5,
+  SA: 6
+};
+
+/* Formate une date locale sous la forme AAAA-MM-JJ */
+function cleDateLocale(dateObj) {
+  return (
+    dateObj.getFullYear() + "-" +
+    deuxChiffres(dateObj.getMonth() + 1) + "-" +
+    deuxChiffres(dateObj.getDate())
+  );
+}
+
+/* Retourne minuit (00:00:00) pour une date donnee */
+function debutJourLocal(dateObj) {
+  return new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 0, 0, 0, 0);
+}
+
+/* Met a jour l'heure et la date en haut a gauche */
+function majHorloge() {
+  try {
+    var maintenant = new Date();
+    var elHeure = document.getElementById("horloge");
+    var elDate = document.getElementById("date");
+    if (elHeure) {
+      elHeure.textContent = deuxChiffres(maintenant.getHours()) + ":" + deuxChiffres(maintenant.getMinutes());
+    }
+    if (elDate) {
+      elDate.textContent =
+        JOURS_SEMAINE_FR[maintenant.getDay()] + " " +
+        maintenant.getDate() + " " +
+        MOIS_FR[maintenant.getMonth()] + " " +
+        maintenant.getFullYear();
+    }
+  } catch (e) {
+    if (window.console && console.error) console.error("Erreur horloge :", e);
+  }
+}
+
+/* Formate une date ISO en libelle court ("Auj.", "lun.", etc.) */
+function formaterJourCourt(dateIso, index) {
+  if (index === 0) return "Auj.";
+  var parties = String(dateIso || "").split("-");
+  if (parties.length !== 3) return "";
+  var a = parseInt(parties[0], 10);
+  var m = parseInt(parties[1], 10);
+  var j = parseInt(parties[2], 10);
+  if (isNaN(a) || isNaN(m) || isNaN(j)) return "";
+  var dateObj = new Date(a, m - 1, j);
+  return JOURS_COURTS_FR[dateObj.getDay()];
+}
+
+/* Affiche toutes les heures de la journee en cours a partir de l'heure actuelle */
+function afficherMeteoHoraireJour(hourly) {
+  try {
+    var conteneurHoraire = document.getElementById("meteo-horaire");
+    if (!conteneurHoraire) return;
+    conteneurHoraire.innerHTML = "";
+
+    if (!hourly || !hourly.time || !hourly.time.length) return;
+
+    var maintenant = new Date();
+    var cleAuj = cleDateLocale(maintenant);
+    var heureActuelle = maintenant.getHours();
+    var pas = Math.max(1, parseInt(CONFIG.pasHeuresMeteo, 10) || 1);
+    var maxCartes = Math.max(1, parseInt(CONFIG.maxCreneauxHoraire, 10) || 24);
+
+    var cartes = [];
+    for (var i = 0; i < hourly.time.length; i++) {
+      var iso = String(hourly.time[i] || "");
+      var parts = iso.split("T");
+      if (parts.length !== 2 || parts[0] !== cleAuj) continue;
+
+      var heureStr = parts[1].split(":")[0];
+      var hNum = parseInt(heureStr, 10);
+      /* On conserve uniquement les heures de la journee en cours a partir de l'heure actuelle */
+      if (isNaN(hNum) || hNum < heureActuelle) continue;
+      if ((hNum - heureActuelle) % pas !== 0) continue;
+
+      var tempH = hourly.temperature_2m ? Math.round(hourly.temperature_2m[i] || 0) : 0;
+      var codeH = hourly.weather_code ? hourly.weather_code[i] : 0;
+      var pluieH = hourly.precipitation_probability ? (hourly.precipitation_probability[i] || 0) : 0;
+
+      cartes.push({
+        heure: hNum + "h",
+        icone: obtenirIconeMeteo(codeH),
+        pluie: pluieH + "%",
+        temp: tempH + "\u00b0"
+      });
+
+      if (cartes.length >= maxCartes) break;
+    }
+
+    if (cartes.length === 0) return;
+
+    var titre = document.createElement("div");
+    titre.className = "titre-sous-bloc";
+    titre.textContent = "Aujourd\u2019hui \u00b7 Heure par heure";
+    conteneurHoraire.appendChild(titre);
+
+    for (var c = 0; c < cartes.length; c++) {
+      var item = cartes[c];
+      var ligne = document.createElement("div");
+      ligne.className = "heure-carte";
+      ligne.innerHTML =
+        '<div class="heure-libelle">' + item.heure + '</div>' +
+        '<div class="heure-icone">' + item.icone + '</div>' +
+        '<div class="heure-pluie">' + item.pluie + '</div>' +
+        '<div class="heure-temp">' + item.temp + '</div>';
+      conteneurHoraire.appendChild(ligne);
+    }
+  } catch (e) {
+    if (window.console && console.error) console.error("Erreur meteo horaire :", e);
+  }
+}
+
+/* Recupere la meteo actuelle, la meteo heure par heure du jour et les 7 jours */
+function majMeteo() {
+  var elErreur = document.getElementById("erreur-meteo");
+  var url =
+    "https://api.open-meteo.com/v1/forecast" +
+    "?latitude=" + encodeURIComponent(CONFIG.latitude) +
+    "&longitude=" + encodeURIComponent(CONFIG.longitude) +
+    "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m" +
+    "&hourly=temperature_2m,weather_code,precipitation_probability" +
+    "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
+    "&timezone=" + encodeURIComponent(CONFIG.fuseauHoraire);
+
+  requeteTexte(url, function (err, texte) {
+    if (err || !texte) {
+      if (elErreur) {
+        elErreur.textContent = "M\u00e9t\u00e9o indisponible (" + (err && err.message ? err.message : "erreur") + ")";
+        elErreur.style.display = "block";
+      }
+      return;
+    }
+    try {
+      var donnees = JSON.parse(texte);
+      if (!donnees.current || !donnees.daily || !donnees.daily.time) {
+        if (elErreur) elErreur.style.display = "block";
+        return;
+      }
+
+      var codeActuel = donnees.current.weather_code;
+      var tempActuelle = Math.round(donnees.current.temperature_2m || 0);
+      var ventActuel = Math.round(donnees.current.wind_speed_10m || 0);
+      var minAuj = Math.round((donnees.daily.temperature_2m_min && donnees.daily.temperature_2m_min[0]) || 0);
+      var maxAuj = Math.round((donnees.daily.temperature_2m_max && donnees.daily.temperature_2m_max[0]) || 0);
+      var pluieAuj = (donnees.daily.precipitation_probability_max && donnees.daily.precipitation_probability_max[0]) || 0;
+
+      var elIcone = document.getElementById("meteo-icone");
+      var elTemp = document.getElementById("meteo-temp");
+      var elDesc = document.getElementById("meteo-desc");
+      var elDetails = document.getElementById("meteo-details");
+      if (elIcone) elIcone.innerHTML = obtenirIconeMeteo(codeActuel);
+      if (elTemp) elTemp.textContent = tempActuelle + " \u00b0C";
+      if (elDesc) elDesc.textContent = CONFIG.ville;
+      if (elDetails) {
+        elDetails.textContent =
+          "Min " + minAuj + "\u00b0 / Max " + maxAuj + "\u00b0 \u00b7 Pluie " + pluieAuj + "% \u00b7 Vent " + ventActuel + " km/h";
+      }
+
+      /* Affiche l'heure par heure juste sous la meteo actuelle, avant les 7 jours */
+      afficherMeteoHoraireJour(donnees.hourly);
+
+      var conteneur7J = document.getElementById("previsions-7j");
+      if (conteneur7J) {
+        conteneur7J.innerHTML = "";
+        var nbJours = Math.min(CONFIG.nbJoursPrevision, donnees.daily.time.length);
+        for (var i = 0; i < nbJours; i++) {
+          var dateIso = donnees.daily.time[i];
+          var codeJour = donnees.daily.weather_code ? donnees.daily.weather_code[i] : 0;
+          var pluieJour = (donnees.daily.precipitation_probability_max && donnees.daily.precipitation_probability_max[i]) || 0;
+          var minJour = Math.round((donnees.daily.temperature_2m_min && donnees.daily.temperature_2m_min[i]) || 0);
+          var maxJour = Math.round((donnees.daily.temperature_2m_max && donnees.daily.temperature_2m_max[i]) || 0);
+
+          var ligne = document.createElement("div");
+          ligne.className = "jour-carte";
+          ligne.innerHTML =
+            '<div class="jour-nom">' + formaterJourCourt(dateIso, i) + '</div>' +
+            '<div class="jour-icone">' + obtenirIconeMeteo(codeJour) + '</div>' +
+            '<div class="jour-pluie">' + pluieJour + '%</div>' +
+            '<div class="jour-temp">' + maxJour + '\u00b0 <span>/ ' + minJour + '\u00b0</span></div>';
+
+          conteneur7J.appendChild(ligne);
+        }
+      }
+
+      if (elErreur) elErreur.style.display = "none";
+    } catch (e) {
+      if (elErreur) elErreur.style.display = "block";
+    }
+  });
+}
+
+/* Nettoie les caracteres d'echappement d'un texte ICS */
+function decoderTexteIcs(texte) {
+  return String(texte || "")
+    .replace(/\\n/gi, " ")
+    .replace(/\\,/g, ",")
+    .replace(/\\;/g, ";")
+    .replace(/\\\\/g, "\\")
+    .replace(/^\s+|\s+$/g, "");
+}
+
+/* Convertit une date ICS en objet Date JavaScript */
+function analyserDateIcs(valeurBrute) {
+  if (!valeurBrute) return null;
+  var parties = valeurBrute.split(":");
+  var propre = parties[parties.length - 1].replace(/^\s+|\s+$/g, "");
+
+  var matchDateHeure = propre.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?(Z)?$/);
+  if (matchDateHeure) {
+    var a = parseInt(matchDateHeure[1], 10);
+    var m = parseInt(matchDateHeure[2], 10);
+    var j = parseInt(matchDateHeure[3], 10);
+    var h = parseInt(matchDateHeure[4], 10);
+    var min = parseInt(matchDateHeure[5], 10);
+    var sec = matchDateHeure[6] ? parseInt(matchDateHeure[6], 10) : 0;
+    var estUtc = !!matchDateHeure[7];
+    if (estUtc) {
+      return new Date(Date.UTC(a, m - 1, j, h, min, sec));
+    }
+    return new Date(a, m - 1, j, h, min, sec);
+  }
+
+  var matchJour = propre.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (matchJour) {
+    return new Date(
+      parseInt(matchJour[1], 10),
+      parseInt(matchJour[2], 10) - 1,
+      parseInt(matchJour[3], 10),
+      0, 0, 0
+    );
+  }
+  return null;
+}
+
+/* Ajoute une duree ICS a une date de debut */
+function ajouterDureeIcs(dateDebut, dureeBrute) {
+  if (!dateDebut || !dureeBrute) return null;
+  var propre = dureeBrute.replace(/^\s+|\s+$/g, "");
+  var m = propre.match(/^[+-]?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/);
+  if (!m) return null;
+
+  var semaines = m[1] ? parseInt(m[1], 10) : 0;
+  var jours = m[2] ? parseInt(m[2], 10) : 0;
+  var heures = m[3] ? parseInt(m[3], 10) : 0;
+  var minutes = m[4] ? parseInt(m[4], 10) : 0;
+  var secondes = m[5] ? parseInt(m[5], 10) : 0;
+
+  var totalJours = semaines * 7 + jours;
+  var msAjoutes = (((totalJours * 24 + heures) * 60 + minutes) * 60 + secondes) * 1000;
+  return new Date(dateDebut.getTime() + msAjoutes);
+}
+
+/* Retourne le lundi de la semaine correspondant a dateRef */
+function obtenirLundiSemaine(dateRef) {
+  var d = debutJourLocal(dateRef);
+  var jourSemaine = d.getDay();
+  var decalageLundi = (jourSemaine + 6) % 7;
+  d.setDate(d.getDate() - decalageLundi);
+  return d;
+}
+
+/* Retourne la date de fin de la fenetre d'affichage du planning */
+function obtenirFinFenetreAffichage() {
+  var maintenant = new Date();
+  var lundiDepart = obtenirLundiSemaine(maintenant);
+  var nbSemaines = Math.max(1, parseInt(CONFIG.nbSemainesPlanning, 10) || 3);
+  return new Date(
+    lundiDepart.getFullYear(),
+    lundiDepart.getMonth(),
+    lundiDepart.getDate() + nbSemaines * 7,
+    23, 59, 59, 999
+  );
+}
+
+/* Analyse une regle de recurrence RRULE */
+function analyserRegleRecurrence(rruleBrute) {
+  if (!rruleBrute) return null;
+  var regle = {
+    freq: "",
+    interval: 1,
+    count: null,
+    until: null,
+    byday: []
+  };
+  var parts = String(rruleBrute).split(";");
+  for (var i = 0; i < parts.length; i++) {
+    var kv = parts[i].split("=");
+    if (kv.length !== 2) continue;
+    var cle = kv[0].toUpperCase();
+    var val = kv[1].toUpperCase();
+
+    if (cle === "FREQ") {
+      regle.freq = val;
+    } else if (cle === "INTERVAL") {
+      var iv = parseInt(val, 10);
+      if (!isNaN(iv) && iv > 0) regle.interval = iv;
+    } else if (cle === "COUNT") {
+      var ct = parseInt(val, 10);
+      if (!isNaN(ct) && ct > 0) regle.count = ct;
+    } else if (cle === "UNTIL") {
+      regle.until = analyserDateIcs(val);
+    } else if (cle === "BYDAY") {
+      var joursList = val.split(",");
+      for (var j = 0; j < joursList.length; j++) {
+        var codeJour = joursList[j].replace(/^[+-]?\d+/, "");
+        if (CODES_JOUR_ICS.hasOwnProperty(codeJour)) {
+          regle.byday.push(CODES_JOUR_ICS[codeJour]);
+        }
+      }
+    }
+  }
+  return regle.freq ? regle : null;
+}
+
+/* Genere les occurrences d'un evenement ponctuel ou recurrent */
+function genererDatesOccurrences(dateDebut, rruleBrute, exdates) {
+  var regle = analyserRegleRecurrence(rruleBrute);
+  if (!regle) {
+    return [dateDebut];
+  }
+
+  var finAffichage = obtenirFinFenetreAffichage();
+  var dateLimite = finAffichage;
+  if (regle.until && !isNaN(regle.until.getTime()) && regle.until.getTime() < dateLimite.getTime()) {
+    dateLimite = regle.until;
+  }
+
+  var exclusions = {};
+  if (exdates && exdates.length) {
+    for (var x = 0; x < exdates.length; x++) {
+      var dEx = analyserDateIcs(exdates[x]);
+      if (dEx && !isNaN(dEx.getTime())) {
+        exclusions[cleDateLocale(dEx)] = true;
+      }
+    }
+  }
+
+  var occurrences = [];
+  var heure = dateDebut.getHours();
+  var minute = dateDebut.getMinutes();
+  var seconde = dateDebut.getSeconds();
+  var totalEvaluations = 0;
+  var garde = 0;
+
+  function ajouterSiValide(candidat) {
+    if (candidat.getTime() < dateDebut.getTime()) return;
+    totalEvaluations++;
+    if (regle.count && totalEvaluations > regle.count) return;
+    if (candidat.getTime() > dateLimite.getTime()) return;
+    if (!exclusions[cleDateLocale(candidat)]) {
+      occurrences.push(candidat);
+    }
+  }
+
+  if (regle.freq === "DAILY") {
+    var idxJour = 0;
+    while (garde < CONFIG.maxOccurrencesRecurrence) {
+      var dDaily = new Date(
+        dateDebut.getFullYear(),
+        dateDebut.getMonth(),
+        dateDebut.getDate() + idxJour * regle.interval,
+        heure, minute, seconde
+      );
+      if (dDaily.getTime() > dateLimite.getTime()) break;
+      if (regle.count && totalEvaluations >= regle.count) break;
+      ajouterSiValide(dDaily);
+      idxJour++;
+      garde++;
+    }
+    return occurrences;
+  }
+
+  if (regle.freq === "WEEKLY") {
+    var joursCibles = regle.byday.length > 0 ? regle.byday : [dateDebut.getDay()];
+    var lundiBase = obtenirLundiSemaine(dateDebut);
+    var idxSemaine = 0;
+
+    while (garde < CONFIG.maxOccurrencesRecurrence) {
+      var lundiCourant = new Date(
+        lundiBase.getFullYear(),
+        lundiBase.getMonth(),
+        lundiBase.getDate() + idxSemaine * 7 * regle.interval,
+        0, 0, 0
+      );
+      if (lundiCourant.getTime() > dateLimite.getTime()) break;
+      if (regle.count && totalEvaluations >= regle.count) break;
+
+      for (var k = 0; k < joursCibles.length; k++) {
+        var decalageJour = (joursCibles[k] + 6) % 7;
+        var dHebdo = new Date(
+          lundiCourant.getFullYear(),
+          lundiCourant.getMonth(),
+          lundiCourant.getDate() + decalageJour,
+          heure, minute, seconde
+        );
+        if (dHebdo.getTime() > dateLimite.getTime()) continue;
+        if (regle.count && totalEvaluations >= regle.count) break;
+        ajouterSiValide(dHebdo);
+      }
+
+      idxSemaine++;
+      garde++;
+    }
+    return occurrences;
+  }
+
+  if (regle.freq === "MONTHLY") {
+    var idxMois = 0;
+    var jourDuMois = dateDebut.getDate();
+    while (garde < CONFIG.maxOccurrencesRecurrence) {
+      var dMensuel = new Date(
+        dateDebut.getFullYear(),
+        dateDebut.getMonth() + idxMois * regle.interval,
+        jourDuMois,
+        heure, minute, seconde
+      );
+      if (dMensuel.getTime() > dateLimite.getTime()) break;
+      if (regle.count && totalEvaluations >= regle.count) break;
+      ajouterSiValide(dMensuel);
+      idxMois++;
+      garde++;
+    }
+    return occurrences;
+  }
+
+  if (regle.freq === "YEARLY") {
+    var idxAn = 0;
+    while (garde < CONFIG.maxOccurrencesRecurrence) {
+      var dAnnuel = new Date(
+        dateDebut.getFullYear() + idxAn * regle.interval,
+        dateDebut.getMonth(),
+        dateDebut.getDate(),
+        heure, minute, seconde
+      );
+      if (dAnnuel.getTime() > dateLimite.getTime()) break;
+      if (regle.count && totalEvaluations >= regle.count) break;
+      ajouterSiValide(dAnnuel);
+      idxAn++;
+      garde++;
+    }
+    return occurrences;
+  }
+
+  return [dateDebut];
+}
+
+/* Retourne la liste des jours couverts par un evenement */
+function obtenirJoursCouverts(dateDebut, dateFin, jourEntier) {
+  var jours = [];
+  var jourCourant = debutJourLocal(dateDebut);
+  var dernierJour = jourCourant;
+
+  if (dateFin && !isNaN(dateFin.getTime()) && dateFin.getTime() > dateDebut.getTime()) {
+    if (jourEntier) {
+      dernierJour = new Date(dateFin.getFullYear(), dateFin.getMonth(), dateFin.getDate() - 1, 0, 0, 0, 0);
+    } else {
+      var estMinuitPile =
+        dateFin.getHours() === 0 &&
+        dateFin.getMinutes() === 0 &&
+        dateFin.getSeconds() === 0;
+      dernierJour = estMinuitPile
+        ? new Date(dateFin.getFullYear(), dateFin.getMonth(), dateFin.getDate() - 1, 0, 0, 0, 0)
+        : debutJourLocal(dateFin);
+    }
+  }
+
+  if (dernierJour.getTime() < jourCourant.getTime()) {
+    dernierJour = jourCourant;
+  }
+
+  var garde = 0;
+  while (jourCourant.getTime() <= dernierJour.getTime() && garde < CONFIG.maxJoursEvenement) {
+    jours.push(cleDateLocale(jourCourant));
+    jourCourant = new Date(jourCourant.getFullYear(), jourCourant.getMonth(), jourCourant.getDate() + 1, 0, 0, 0, 0);
+    garde++;
+  }
+
+  return jours;
+}
+
+/* Extrait les evenements d'un flux ICS */
+function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
+  var lignesDepliees = String(texteIcs || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/\n[ \t]/g, "");
+
+  var blocs = lignesDepliees.split("BEGIN:VEVENT");
+  var evenements = [];
+
+  for (var b = 1; b < blocs.length; b++) {
+    var bloc = blocs[b];
+    var finIndex = bloc.indexOf("END:VEVENT");
+    var contenu = finIndex !== -1 ? bloc.slice(0, finIndex) : bloc;
+    var lignes = contenu.split("\n");
+
+    var resume = "";
+    var dtstart = "";
+    var dtend = "";
+    var duration = "";
+    var rrule = "";
+    var exdates = [];
+
+    for (var l = 0; l < lignes.length; l++) {
+      var ligne = lignes[l];
+      if (ligne.indexOf("SUMMARY") === 0) {
+        var idx1 = ligne.indexOf(":");
+        if (idx1 !== -1) resume = decoderTexteIcs(ligne.slice(idx1 + 1));
+      } else if (ligne.indexOf("DTSTART") === 0) {
+        var idx2 = ligne.indexOf(":");
+        if (idx2 !== -1) dtstart = ligne.slice(idx2 + 1).replace(/^\s+|\s+$/g, "");
+      } else if (ligne.indexOf("DTEND") === 0) {
+        var idx3 = ligne.indexOf(":");
+        if (idx3 !== -1) dtend = ligne.slice(idx3 + 1).replace(/^\s+|\s+$/g, "");
+      } else if (ligne.indexOf("DURATION") === 0) {
+        var idx4 = ligne.indexOf(":");
+        if (idx4 !== -1) duration = ligne.slice(idx4 + 1).replace(/^\s+|\s+$/g, "");
+      } else if (ligne.indexOf("RRULE") === 0) {
+        var idx5 = ligne.indexOf(":");
+        if (idx5 !== -1) rrule = ligne.slice(idx5 + 1).replace(/^\s+|\s+$/g, "");
+      } else if (ligne.indexOf("EXDATE") === 0) {
+        var idx6 = ligne.indexOf(":");
+        if (idx6 !== -1) {
+          var listeEx = ligne.slice(idx6 + 1).split(",");
+          for (var eIdx = 0; eIdx < listeEx.length; eIdx++) {
+            if (listeEx[eIdx]) exdates.push(listeEx[eIdx].replace(/^\s+|\s+$/g, ""));
+          }
+        }
+      }
+    }
+
+    var dateDebutInitiale = analyserDateIcs(dtstart);
+    if (dateDebutInitiale && !isNaN(dateDebutInitiale.getTime()) && resume) {
+      var dateFinInitiale = dtend ? analyserDateIcs(dtend) : ajouterDureeIcs(dateDebutInitiale, duration);
+      var dureeMs =
+        dateFinInitiale && !isNaN(dateFinInitiale.getTime()) && dateFinInitiale.getTime() > dateDebutInitiale.getTime()
+          ? dateFinInitiale.getTime() - dateDebutInitiale.getTime()
+          : 0;
+
+      var dParties = dtstart.split(":");
+      var dPropre = dParties[dParties.length - 1].replace(/^\s+|\s+$/g, "");
+      var estJourEntier = /^\d{8}$/.test(dPropre);
+
+      var datesOccurrences = genererDatesOccurrences(dateDebutInitiale, rrule, exdates);
+
+      for (var o = 0; o < datesOccurrences.length; o++) {
+        var occDebut = datesOccurrences[o];
+        var occFin = dureeMs > 0 ? new Date(occDebut.getTime() + dureeMs) : null;
+        var joursCouverts = obtenirJoursCouverts(occDebut, occFin, estJourEntier);
+
+        for (var k = 0; k < joursCouverts.length; k++) {
+          var cleJour = joursCouverts[k];
+          var estPremierJour = (k === 0);
+          evenements.push({
+            personne: personne,
+            classeCouleur: classeCouleur,
+            titre: resume,
+            date: occDebut,
+            cleJour: cleJour,
+            jourEntier: estJourEntier || !estPremierJour
+          });
+        }
+      }
+    }
+  }
+
+  return evenements;
+}
+
+/* Formate l'heure d'un evenement ("14h", "14h30") */
+function formaterHeureCourte(dateObj, jourEntier) {
+  if (jourEntier) return "";
+  var h = dateObj.getHours();
+  var min = dateObj.getMinutes();
+  if (min === 0) return h + "h";
+  return h + "h" + deuxChiffres(min);
+}
+
+/* Recupere un fichier ICS via le relais Apps Script */
+function recupererIcs(url, callback) {
+  var baseRelais = String(CONFIG.relaisAppsScript || "").replace(/^\s+|\s+$/g, "");
+  if (!baseRelais) {
+    callback(new Error("Aucun relais Apps Script configur\u00e9"), null);
+    return;
+  }
+  var sep = baseRelais.indexOf("?") !== -1 ? "&" : "?";
+  var urlRelais = baseRelais + sep + "url=" + encodeURIComponent(url);
+  requeteTexte(urlRelais, function (err, texte) {
+    if (err) {
+      callback(err, null);
+      return;
+    }
+    if (!texte || texte.indexOf("BEGIN:VCALENDAR") === -1) {
+      callback(new Error(extraireHote(urlRelais) + " : r\u00e9ponse non-ICS"), null);
+      return;
+    }
+    callback(null, texte);
+  });
+}
+
+/* Construit la grille des semaines du planning */
+function construireGrillePlanning(evenementsParJour, erreurs) {
+  try {
+    var statutEl = document.getElementById("statut-calendrier");
+    var zoneGrille = document.getElementById("zone-grille");
+    var grille = document.getElementById("grille-4-semaines");
+    if (!statutEl || !zoneGrille || !grille) return;
+
+    statutEl.innerHTML = "";
+    grille.innerHTML = "";
+
+    if (erreurs.length > 0) {
+      statutEl.innerHTML =
+        '<div class="cal-erreur">Calendriers indisponibles : ' +
+        erreurs.join(" \u2014 ") +
+        ".</div>";
+      zoneGrille.style.height = "75%";
+    } else {
+      zoneGrille.style.height = "84%";
+    }
+
+    var maintenant = new Date();
+    var cleAujourdhui = cleDateLocale(maintenant);
+    var debutAujourdhui = debutJourLocal(maintenant);
+    var lundiDepart = obtenirLundiSemaine(maintenant);
+    var nbSemaines = Math.max(1, parseInt(CONFIG.nbSemainesPlanning, 10) || 3);
+    var hauteurLignePct = (100 / nbSemaines).toFixed(4) + "%";
+
+    for (var s = 0; s < nbSemaines; s++) {
+      var ligneSemaine = document.createElement("div");
+      ligneSemaine.className = "ligne-semaine";
+      ligneSemaine.style.height = hauteurLignePct;
+
+      for (var j = 0; j < 7; j++) {
+        var offsetJours = s * 7 + j;
+        var dateCase = new Date(
+          lundiDepart.getFullYear(),
+          lundiDepart.getMonth(),
+          lundiDepart.getDate() + offsetJours,
+          0, 0, 0, 0
+        );
+        var cleCase = cleDateLocale(dateCase);
+        var estAujourdhui = cleCase === cleAujourdhui;
+        var estPasse = dateCase < debutAujourdhui;
+
+        var caseDiv = document.createElement("div");
+        caseDiv.className = "case-jour" + (estAujourdhui ? " aujourd-hui" : "") + (estPasse ? " jour-passe" : "");
+        caseDiv.style.height = hauteurLignePct;
+
+        var moisCourt = MOIS_COURTS_FR[dateCase.getMonth()];
+
+        var enteteJour = document.createElement("div");
+        enteteJour.className = "case-entete-jour";
+        enteteJour.innerHTML =
+          '<span class="numero-jour">' + dateCase.getDate() + '</span>' +
+          '<span class="mois-court">' + moisCourt + '</span>';
+
+        var listeEventsJour = document.createElement("div");
+        listeEventsJour.className = "case-evenements";
+
+        var eventsDuJour = evenementsParJour[cleCase] || [];
+        for (var e = 0; e < eventsDuJour.length; e++) {
+          var ev = eventsDuJour[e];
+          var puce = document.createElement("div");
+          puce.className = "event-puce " + ev.classeCouleur;
+          var heureTexte = formaterHeureCourte(ev.date, ev.jourEntier);
+          puce.innerHTML =
+            (heureTexte ? '<span class="event-heure">' + heureTexte + '</span>' : '') +
+            '<span>' + ev.titre + '</span>';
+          listeEventsJour.appendChild(puce);
+        }
+
+        caseDiv.appendChild(enteteJour);
+        caseDiv.appendChild(listeEventsJour);
+        ligneSemaine.appendChild(caseDiv);
+      }
+
+      grille.appendChild(ligneSemaine);
+    }
+  } catch (e) {
+    if (window.console && console.error) console.error("Erreur grille planning :", e);
+  }
+}
+
+/* Met a jour les calendriers et le planning */
+function majPlanning4Semaines() {
+  try {
+    var leg1 = document.getElementById("legende-capucine");
+    var leg2 = document.getElementById("legende-clemence");
+    if (leg1) leg1.textContent = CONFIG.titreCal1;
+    if (leg2) leg2.textContent = CONFIG.titreCal2;
+
+    var tousEvenements = [];
+    var erreurs = [];
+    var termines = 0;
+
+    function verifierFin() {
+      termines++;
+      if (termines < 2) return;
+
+      var evenementsParJour = {};
+      for (var i = 0; i < tousEvenements.length; i++) {
+        var ev = tousEvenements[i];
+        if (!evenementsParJour[ev.cleJour]) {
+          evenementsParJour[ev.cleJour] = [];
+        }
+        evenementsParJour[ev.cleJour].push(ev);
+      }
+
+      for (var cle in evenementsParJour) {
+        if (evenementsParJour.hasOwnProperty(cle)) {
+          even
