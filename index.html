@@ -11,6 +11,7 @@
     --muted: #8b98a3;
     --card: #181f26;
     --card-soft: #202933;
+    --border: rgba(255, 255, 255, 0.08);
     --capucine: #ff69b4; /* Rose pour Capucine */
     --clemence: #ffd43b; /* Jaune pour Clémence */
   }
@@ -29,7 +30,7 @@
     top: 0;
     bottom: 0;
     left: 0;
-    width: 38%;
+    width: 34%;
     display: flex;
     flex-direction: column;
   }
@@ -38,46 +39,46 @@
     top: 0;
     bottom: 0;
     right: 0;
-    width: 62%;
+    width: 66%;
     display: flex;
     flex-direction: column;
   }
-  #colonne-gauche > div { padding: 2.2vw 2vw; }
-  #horloge { font-size: 7.5vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-  #date { font-size: 1.8vw; color: var(--muted); margin-top: 0.6vw; text-transform: capitalize; }
+  #colonne-gauche > div { padding: 1.8vw 1.6vw; }
+  #horloge { font-size: 6.4vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  #date { font-size: 1.5vw; color: var(--muted); margin-top: 0.5vw; text-transform: capitalize; }
 
   /* Météo actuelle */
-  #meteo { margin-top: 1.6vw; }
+  #meteo { margin-top: 1.3vw; }
   #meteo-ligne-principale {
     display: flex;
     align-items: center;
-    gap: 1vw;
+    gap: 0.9vw;
   }
   #meteo-icone .icone-svg {
-    width: 3.8vw;
-    height: 3.8vw;
+    width: 3.3vw;
+    height: 3.3vw;
     display: block;
   }
-  #meteo-temp { font-size: 3.6vw; font-weight: 300; line-height: 1.1; }
-  #meteo-desc { font-size: 1.4vw; color: var(--muted); margin-top: 0.35vw; }
-  #meteo-details { font-size: 1.1vw; color: var(--muted); margin-top: 0.3vw; }
-  #erreur-meteo { font-size: 1.2vw; color: #e5533d; display: none; margin-top: 0.6vw; }
+  #meteo-temp { font-size: 3.1vw; font-weight: 300; line-height: 1.1; }
+  #meteo-desc { font-size: 1.25vw; color: var(--muted); margin-top: 0.3vw; }
+  #meteo-details { font-size: 0.95vw; color: var(--muted); margin-top: 0.25vw; }
+  #erreur-meteo { font-size: 1.05vw; color: #e5533d; display: none; margin-top: 0.5vw; }
 
   /* Prévisions sur 7 jours */
   #previsions-7j {
-    margin-top: 1.4vw;
+    margin-top: 1.1vw;
     display: flex;
     flex-direction: column;
-    gap: 0.42vw;
+    gap: 0.35vw;
   }
   .jour-carte {
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: var(--card);
-    padding: 0.45vw 0.9vw;
-    border-radius: 0.65vw;
-    font-size: 1.1vw;
+    padding: 0.38vw 0.75vw;
+    border-radius: 0.55vw;
+    font-size: 0.95vw;
   }
   .jour-nom {
     width: 24%;
@@ -91,14 +92,14 @@
     justify-content: center;
   }
   .jour-icone .icone-svg {
-    width: 1.8vw;
-    height: 1.8vw;
+    width: 1.5vw;
+    height: 1.5vw;
     display: block;
   }
   .jour-pluie {
     color: #6ea8fe;
-    font-size: 1vw;
-    margin-right: 0.7vw;
+    font-size: 0.9vw;
+    margin-right: 0.6vw;
     white-space: nowrap;
   }
   .jour-temp {
@@ -110,12 +111,12 @@
     font-weight: 400;
   }
 
-  /* Bloc calendrier unique à droite */
+  /* Bloc planning 4 semaines x 7 jours à droite */
   #pile {
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 1.5vw;
+    padding: 1.2vw 1.4vw 1.2vw 0.4vw;
   }
   .cal-bloc-unique {
     flex: 1;
@@ -124,105 +125,149 @@
     background: var(--card);
     border-radius: 1vw;
     overflow: hidden;
-    padding: 1.4vw 1.6vw;
+    padding: 1.1vw 1.2vw;
   }
   .cal-entete {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.2vw;
-    flex-wrap: wrap;
+    margin-bottom: 0.8vw;
     gap: 1vw;
   }
   .cal-titre-principal {
-    font-size: 1.8vw;
+    font-size: 1.55vw;
     font-weight: 700;
   }
   .legende {
     display: flex;
     align-items: center;
-    gap: 1.4vw;
-    font-size: 1.2vw;
+    gap: 1.2vw;
+    font-size: 1.05vw;
   }
   .legende-item {
     display: flex;
     align-items: center;
-    gap: 0.55vw;
+    gap: 0.45vw;
     font-weight: 600;
   }
   .pastille {
-    width: 1vw;
-    height: 1vw;
+    width: 0.85vw;
+    height: 0.85vw;
     border-radius: 50%;
     display: inline-block;
   }
   .pastille-capucine { background: var(--capucine); }
   .pastille-clemence { background: var(--clemence); }
 
-  #liste-evenements {
+  /* En-tête Lun -> Dim */
+  .jours-semaine-entete {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.45vw;
+    margin-bottom: 0.45vw;
+  }
+  .jour-semaine-label {
+    text-align: center;
+    font-size: 0.95vw;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.2vw 0;
+  }
+
+  /* Grille de 4 semaines (28 cases) */
+  #grille-4-semaines {
     flex: 1;
-    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    gap: 0.45vw;
+    min-height: 0;
+  }
+  .case-jour {
+    background: var(--card-soft);
+    border: 1px solid var(--border);
+    border-radius: 0.55vw;
+    padding: 0.35vw 0.42vw;
     display: flex;
     flex-direction: column;
-    gap: 0.75vw;
-    padding-right: 0.3vw;
+    gap: 0.22vw;
+    overflow: hidden;
+    min-height: 0;
   }
-  .evenement-carte {
+  .case-jour.aujourd-hui {
+    border-color: #6ea8fe;
+    box-shadow: inset 0 0 0 1px rgba(110, 168, 254, 0.45);
+    background: #24303d;
+  }
+  .case-jour.jour-passe {
+    opacity: 0.65;
+  }
+  .case-entete-jour {
     display: flex;
     align-items: center;
-    gap: 1vw;
-    background: var(--card-soft);
-    padding: 0.9vw 1.1vw;
-    border-radius: 0.75vw;
-    border-left: 0.45vw solid transparent;
-  }
-  .evenement-capucine { border-left-color: var(--capucine); }
-  .evenement-clemence { border-left-color: var(--clemence); }
-
-  .evenement-badge {
-    font-size: 1vw;
-    font-weight: 700;
-    padding: 0.25vw 0.65vw;
-    border-radius: 0.4vw;
-    white-space: nowrap;
-  }
-  .badge-capucine {
-    background: rgba(255, 105, 180, 0.18);
-    color: var(--capucine);
-  }
-  .badge-clemence {
-    background: rgba(255, 212, 59, 0.18);
-    color: var(--clemence);
-  }
-
-  .evenement-date {
-    min-width: 13vw;
-    font-size: 1.15vw;
+    justify-content: space-between;
+    font-size: 0.82vw;
     color: var(--muted);
-    white-space: nowrap;
+    line-height: 1.1;
+    margin-bottom: 0.08vw;
   }
-  .evenement-titre {
-    flex: 1;
-    font-size: 1.3vw;
-    font-weight: 600;
+  .numero-jour {
+    font-weight: 700;
     color: var(--fg);
   }
-  .cal-message {
+  .case-jour.aujourd-hui .numero-jour {
+    background: #6ea8fe;
+    color: #101418;
+    padding: 0.08vw 0.35vw;
+    border-radius: 0.35vw;
+  }
+  .mois-court {
+    font-size: 0.72vw;
     color: var(--muted);
-    font-size: 1.25vw;
-    line-height: 1.5;
-    background: var(--card-soft);
-    padding: 1.2vw;
-    border-radius: 0.75vw;
+    text-transform: capitalize;
+  }
+  .case-evenements {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2vw;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .event-puce {
+    font-size: 0.74vw;
+    line-height: 1.2;
+    padding: 0.18vw 0.32vw;
+    border-radius: 0.3vw;
+    border-left: 0.22vw solid transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .event-puce.capucine {
+    background: rgba(255, 105, 180, 0.18);
+    border-left-color: var(--capucine);
+    color: #ffd1e8;
+  }
+  .event-puce.clemence {
+    background: rgba(255, 212, 59, 0.18);
+    border-left-color: var(--clemence);
+    color: #fff0b3;
+  }
+  .event-heure {
+    font-weight: 700;
+    margin-right: 0.2vw;
   }
   .cal-erreur {
+    grid-column: 1 / -1;
     color: #ff8a80;
-    font-size: 1.15vw;
-    line-height: 1.5;
-    background: rgba(229, 83, 61, 0.12);
-    border: 1px solid rgba(229, 83, 61, 0.35);
-    padding: 1vw 1.2vw;
-    border-radius: 0.75vw;
+    font-size: 0.95vw;
+    background: rgba(229, 83, 61, 0.14);
+    border: 1px solid rgba(229, 83, 61, 0.4);
+    padding: 0.6vw 0.8vw;
+    border-radius: 0.55vw;
   }
 </style>
 </head>
@@ -249,7 +294,7 @@
     <div id="pile">
       <div class="cal-bloc-unique">
         <div class="cal-entete">
-          <div class="cal-titre-principal">Emploi du temps</div>
+          <div class="cal-titre-principal">Planning — 4 semaines</div>
           <div class="legende">
             <div class="legende-item">
               <span class="pastille pastille-capucine"></span>
@@ -261,9 +306,18 @@
             </div>
           </div>
         </div>
-        <div id="liste-evenements">
-          <div class="cal-message">Chargement des calendriers...</div>
+
+        <div class="jours-semaine-entete">
+          <div class="jour-semaine-label">Lun</div>
+          <div class="jour-semaine-label">Mar</div>
+          <div class="jour-semaine-label">Mer</div>
+          <div class="jour-semaine-label">Jeu</div>
+          <div class="jour-semaine-label">Ven</div>
+          <div class="jour-semaine-label">Sam</div>
+          <div class="jour-semaine-label">Dim</div>
         </div>
+
+        <div id="grille-4-semaines"></div>
       </div>
     </div>
   </div>
@@ -278,13 +332,12 @@ const CONFIG = {
   ville: "Paris",
   fuseauHoraire: "Europe/Paris",
   nbJoursPrevision: 7,
+  nbSemainesPlanning: 4,
   titreCal1: "Capucine",
   titreCal2: "Clémence",
   icsCal1: "https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbKlOAruzpSD4rwFGhx9g5CtJkeQiQ5PJZbH5BHzM2D5WjW6oRPA5zSTZa1G3_2omP4",
   icsCal2: "https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbJpPwPEuos8HZDEWsf74oGRLyyWbpSACEUkaH8GxmwzZFotlQNxqhPjZeMRiizib-E",
-  relaisAppsScript: "https://script.google.com/macros/s/AKfycbypC4mEbYdl_LQsuVWzrJJtYJp7j8x_VofokPjfm49EIOkViEQQQ5WaxT59CR0XiFNbuA/exec",
-  maxEvenements: 15,
-  uniquementAujourdhuiEtFutur: true
+  relaisAppsScript: "https://script.google.com/macros/s/AKfycbypC4mEbYdl_LQsuVWzrJJtYJp7j8x_VofokPjfm49EIOkViEQQQ5WaxT59CR0XiFNbuA/exec"
 };
 /* ================= FIN DE LA CONFIGURATION ================= */
 
@@ -437,6 +490,23 @@ function analyserDateIcs(valeurBrute) {
   return null;
 }
 
+function cleDateLocale(dateObj) {
+  return (
+    dateObj.getFullYear() + "-" +
+    String(dateObj.getMonth() + 1).padStart(2, "0") + "-" +
+    String(dateObj.getDate()).padStart(2, "0")
+  );
+}
+
+/* Renvoie le lundi 00:00:00 de la semaine contenant `dateRef` */
+function obtenirLundiSemaine(dateRef) {
+  const d = new Date(dateRef.getFullYear(), dateRef.getMonth(), dateRef.getDate(), 0, 0, 0, 0);
+  const jourSemaine = d.getDay(); // 0 = Dimanche, 1 = Lundi, ..., 6 = Samedi
+  const decalageLundi = (jourSemaine + 6) % 7; // Lundi -> 0, Dimanche -> 6
+  d.setDate(d.getDate() - decalageLundi);
+  return d;
+}
+
 function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
   const lignesDepliees = String(texteIcs || "")
     .replace(/\r\n/g, "\n")
@@ -466,12 +536,14 @@ function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
 
     const dateObj = analyserDateIcs(dtstart);
     if (dateObj && !isNaN(dateObj.getTime()) && resume) {
+      const jourEntier = /^\d{8}$/.test(dtstart.split(":").pop().trim());
       evenements.push({
         personne,
         classeCouleur,
         titre: resume,
         date: dateObj,
-        jourEntier: /^\d{8}$/.test(dtstart.split(":").pop().trim())
+        cleJour: cleDateLocale(dateObj),
+        jourEntier
       });
     }
   }
@@ -479,14 +551,12 @@ function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
   return evenements;
 }
 
-function formaterDateEvenement(dateObj, jourEntier) {
-  const optionsJour = { weekday: "short", day: "numeric", month: "short" };
-  const texteJour = dateObj.toLocaleDateString("fr-FR", optionsJour);
-  if (jourEntier) {
-    return texteJour + " · Journée";
-  }
-  const heure = String(dateObj.getHours()).padStart(2, "0") + ":" + String(dateObj.getMinutes()).padStart(2, "0");
-  return texteJour + " · " + heure;
+function formaterHeureCourte(dateObj, jourEntier) {
+  if (jourEntier) return "";
+  const h = dateObj.getHours();
+  const min = dateObj.getMinutes();
+  if (min === 0) return h + "h";
+  return h + "h" + String(min).padStart(2, "0");
 }
 
 async function recupererIcs(url) {
@@ -507,8 +577,69 @@ async function recupererIcs(url) {
   return texte;
 }
 
-async function majCalendriersFusionnes() {
-  const conteneur = document.getElementById("liste-evenements");
+function construireGrillePlanning(evenementsParJour, erreurs) {
+  const grille = document.getElementById("grille-4-semaines");
+  grille.innerHTML = "";
+  grille.style.gridTemplateRows = "repeat(" + CONFIG.nbSemainesPlanning + ", minmax(0, 1fr))";
+
+  if (erreurs.length > 0) {
+    const bandeauErreur = document.createElement("div");
+    bandeauErreur.className = "cal-erreur";
+    bandeauErreur.textContent = "Certains calendriers n'ont pas pu être chargés : " + erreurs.join(" — ") + ".";
+    grille.appendChild(bandeauErreur);
+  }
+
+  const maintenant = new Date();
+  const cleAujourdhui = cleDateLocale(maintenant);
+  const debutAujourdhui = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate(), 0, 0, 0, 0);
+  const lundiDepart = obtenirLundiSemaine(maintenant);
+  const nbCases = CONFIG.nbSemainesPlanning * 7;
+
+  for (let i = 0; i < nbCases; i++) {
+    const dateCase = new Date(
+      lundiDepart.getFullYear(),
+      lundiDepart.getMonth(),
+      lundiDepart.getDate() + i,
+      0, 0, 0, 0
+    );
+    const cleCase = cleDateLocale(dateCase);
+    const estAujourdhui = cleCase === cleAujourdhui;
+    const estPasse = dateCase < debutAujourdhui;
+
+    const caseDiv = document.createElement("div");
+    caseDiv.className = "case-jour" + (estAujourdhui ? " aujourd-hui" : "") + (estPasse ? " jour-passe" : "");
+
+    const moisCourt = dateCase.toLocaleDateString("fr-FR", { month: "short" }).replace(".", "");
+
+    const enteteJour = document.createElement("div");
+    enteteJour.className = "case-entete-jour";
+    enteteJour.innerHTML =
+      '<span class="numero-jour">' + dateCase.getDate() + '</span>' +
+      '<span class="mois-court">' + moisCourt + '</span>';
+
+    const listeEventsJour = document.createElement("div");
+    listeEventsJour.className = "case-evenements";
+
+    const eventsDuJour = evenementsParJour.get(cleCase) || [];
+    for (const ev of eventsDuJour) {
+      const puce = document.createElement("div");
+      puce.className = "event-puce " + ev.classeCouleur;
+      const heureTexte = formaterHeureCourte(ev.date, ev.jourEntier);
+      const labelComplet = (heureTexte ? heureTexte + " " : "") + ev.titre;
+      puce.title = ev.personne + " — " + labelComplet;
+      puce.innerHTML =
+        (heureTexte ? '<span class="event-heure">' + heureTexte + '</span>' : '') +
+        '<span>' + ev.titre + '</span>';
+      listeEventsJour.appendChild(puce);
+    }
+
+    caseDiv.appendChild(enteteJour);
+    caseDiv.appendChild(listeEventsJour);
+    grille.appendChild(caseDiv);
+  }
+}
+
+async function majPlanning4Semaines() {
   document.getElementById("legende-capucine").textContent = CONFIG.titreCal1;
   document.getElementById("legende-clemence").textContent = CONFIG.titreCal2;
 
@@ -540,50 +671,24 @@ async function majCalendriersFusionnes() {
     erreurs.push(CONFIG.titreCal2 + " (" + raison1 + ")");
   }
 
-  if (CONFIG.uniquementAujourdhuiEtFutur) {
-    const debutAujourdhui = new Date();
-    debutAujourdhui.setHours(0, 0, 0, 0);
-    tousEvenements = tousEvenements.filter((ev) => ev.date >= debutAujourdhui);
+  // Regroupe les événements par date (YYYY-MM-DD) et trie par heure
+  const evenementsParJour = new Map();
+  for (const ev of tousEvenements) {
+    if (!evenementsParJour.has(ev.cleJour)) {
+      evenementsParJour.set(ev.cleJour, []);
+    }
+    evenementsParJour.get(ev.cleJour).push(ev);
   }
 
-  tousEvenements.sort((a, b) => a.date - b.date);
-  const aAfficher = tousEvenements.slice(0, CONFIG.maxEvenements);
-
-  conteneur.innerHTML = "";
-
-  if (erreurs.length > 0 && aAfficher.length === 0) {
-    conteneur.innerHTML =
-      '<div class="cal-erreur">' +
-      'Problème avec le relais Apps Script : ' + erreurs.join(" — ") + '.' +
-      '</div>';
-    return;
+  for (const [, liste] of evenementsParJour) {
+    liste.sort((a, b) => a.date - b.date);
   }
 
-  if (erreurs.length > 0) {
-    const bandeauErreur = document.createElement("div");
-    bandeauErreur.className = "cal-erreur";
-    bandeauErreur.textContent = "Certains calendriers n'ont pas pu être chargés : " + erreurs.join(" — ") + ".";
-    conteneur.appendChild(bandeauErreur);
-  }
-
-  if (aAfficher.length === 0) {
-    conteneur.innerHTML += '<div class="cal-message">Aucun événement prévu prochainement.</div>';
-    return;
-  }
-
-  for (const ev of aAfficher) {
-    const carte = document.createElement("div");
-    carte.className = "evenement-carte evenement-" + ev.classeCouleur;
-    carte.innerHTML =
-      '<span class="evenement-badge badge-' + ev.classeCouleur + '">' + ev.personne + '</span>' +
-      '<span class="evenement-date">' + formaterDateEvenement(ev.date, ev.jourEntier) + '</span>' +
-      '<span class="evenement-titre">' + ev.titre + '</span>';
-    conteneur.appendChild(carte);
-  }
+  construireGrillePlanning(evenementsParJour, erreurs);
 }
 
-majCalendriersFusionnes();
-setInterval(majCalendriersFusionnes, 15 * 60 * 1000);
+majPlanning4Semaines();
+setInterval(majPlanning4Semaines, 15 * 60 * 1000);
 
 setTimeout(function () { location.reload(); }, 3 * 60 * 60 * 1000);
 </script>
