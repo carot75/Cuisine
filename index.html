@@ -63,8 +63,54 @@
   #meteo-details { font-size: 0.9vw; color: #8b98a3; margin-top: 0.2vw; }
   #erreur-meteo { font-size: 0.92vw; color: #e5533d; display: none; margin-top: 0.4vw; line-height: 1.35; }
 
+  /* Évolution météo heure par heure (journée en cours) */
+  #meteo-horaire {
+    margin-top: 0.85vw;
+    background: #181f26;
+    border-radius: 0.5vw;
+    padding: 0.45vw 0.5vw;
+    white-space: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .heure-carte {
+    display: inline-block;
+    vertical-align: top;
+    text-align: center;
+    min-width: 3.7vw;
+    padding: 0.25vw 0.3vw;
+    margin-right: 0.2vw;
+    border-radius: 0.38vw;
+    background: #202933;
+  }
+  .heure-carte:last-child { margin-right: 0; }
+  .heure-libelle {
+    font-size: 0.8vw;
+    color: #8b98a3;
+    font-weight: 600;
+  }
+  .heure-icone {
+    margin: 0.2vw 0;
+  }
+  .heure-icone .icone-svg {
+    width: 1.45vw;
+    height: 1.45vw;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .heure-temp {
+    font-size: 0.88vw;
+    font-weight: 700;
+    color: #f4f6f8;
+  }
+  .heure-pluie {
+    font-size: 0.76vw;
+    color: #6ea8fe;
+    margin-top: 0.12vw;
+  }
+
   /* Prévisions sur 7 jours */
-  #previsions-7j { margin-top: 0.9vw; }
+  #previsions-7j { margin-top: 0.85vw; }
   .jour-carte {
     display: table;
     width: 100%;
@@ -288,6 +334,7 @@
         <div id="meteo-details"></div>
         <div id="erreur-meteo">M&eacute;t&eacute;o indisponible</div>
       </div>
+      <div id="meteo-horaire"></div>
       <div id="previsions-7j"></div>
     </div>
   </div>
@@ -338,9 +385,10 @@ var CONFIG = {
   ville: "Paris",
   fuseauHoraire: "Europe/Paris",
   nbJoursPrevision: 7,
+  maxHeuresJournee: 24, /* Nombre max d'heures affichées pour la journée en cours */
   nbSemainesPlanning: 3,
   maxJoursEvenement: 31,
-  maxOccurrencesRecurrence: 250, /* Sécurité anti-boucle sur les événements récurrents */
+  maxOccurrencesRecurrence: 250,
   titreCal1: "Capucine",
   titreCal2: "Cl\u00e9mence",
   icsCal1: "https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbKlOAruzpSD4rwFGhx9g5CtJkeQiQ5PJZbH5BHzM2D5WjW6oRPA5zSTZa1G3_2omP4",
@@ -463,6 +511,56 @@ function formaterJourCourt(dateIso, index) {
   return JOURS_COURTS_FR[dateObj.getDay()];
 }
 
+/* Remplit la section météo heure par heure pour aujourd'hui à partir de l'heure courante */
+function afficherMeteoHoraire(hourly) {
+  var conteneurHoraire = document.getElementById("meteo-horaire");
+  if (!conteneurHoraire) return;
+  conteneurHoraire.innerHTML = "";
+
+  if (!hourly || !hourly.time || !hourly.time.length) {
+    conteneurHoraire.style.display = "none";
+    return;
+  }
+
+  var maintenant = new Date();
+  var cleAujourdhui = cleDateLocale(maintenant);
+  var heureActuelle = maintenant.getHours();
+  var nbAffiches = 0;
+  var maxHeures = Math.max(1, parseInt(CONFIG.maxHeuresJournee, 10) || 24);
+
+  for (var i = 0; i < hourly.time.length; i++) {
+    var horodatage = String(hourly.time[i] || "");
+    /* Format Open-Meteo : "AAAA-MM-JJTHH:MM" */
+    var parties = horodatage.split("T");
+    if (parties.length !== 2) continue;
+
+    var datePart = parties[0];
+    if (datePart !== cleAujourdhui) continue;
+
+    var hParts = parties[1].split(":");
+    var heureSlot = parseInt(hParts[0], 10);
+    if (isNaN(heureSlot) || heureSlot < heureActuelle) continue;
+
+    var codeH = hourly.weather_code ? hourly.weather_code[i] : 0;
+    var tempH = hourly.temperature_2m ? Math.round(hourly.temperature_2m[i]) : 0;
+    var pluieH = hourly.precipitation_probability ? Math.round(hourly.precipitation_probability[i]) : 0;
+
+    var carte = document.createElement("div");
+    carte.className = "heure-carte";
+    carte.innerHTML =
+      '<div class="heure-libelle">' + heureSlot + 'h</div>' +
+      '<div class="heure-icone">' + obtenirIconeMeteo(codeH) + '</div>' +
+      '<div class="heure-temp">' + tempH + '\u00b0</div>' +
+      '<div class="heure-pluie">' + pluieH + '%</div>';
+
+    conteneurHoraire.appendChild(carte);
+    nbAffiches++;
+    if (nbAffiches >= maxHeures) break;
+  }
+
+  conteneurHoraire.style.display = nbAffiches > 0 ? "block" : "none";
+}
+
 function majMeteo() {
   var elErreur = document.getElementById("erreur-meteo");
   var url =
@@ -470,6 +568,7 @@ function majMeteo() {
     "?latitude=" + encodeURIComponent(CONFIG.latitude) +
     "&longitude=" + encodeURIComponent(CONFIG.longitude) +
     "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m" +
+    "&hourly=temperature_2m,weather_code,precipitation_probability" +
     "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
     "&timezone=" + encodeURIComponent(CONFIG.fuseauHoraire);
 
@@ -500,6 +599,8 @@ function majMeteo() {
       document.getElementById("meteo-desc").textContent = CONFIG.ville;
       document.getElementById("meteo-details").textContent =
         "Min " + minAuj + "\u00b0 / Max " + maxAuj + "\u00b0 \u00b7 Pluie " + pluieAuj + "% \u00b7 Vent " + ventActuel + " km/h";
+
+      afficherMeteoHoraire(donnees.hourly);
 
       var conteneur7J = document.getElementById("previsions-7j");
       conteneur7J.innerHTML = "";
@@ -610,7 +711,6 @@ function obtenirLundiSemaine(dateRef) {
   return d;
 }
 
-/* Borne supérieure de la fenêtre d'affichage (fin des N semaines affichées) */
 function obtenirFinFenetreAffichage() {
   var maintenant = new Date();
   var lundiDepart = obtenirLundiSemaine(maintenant);
@@ -623,7 +723,6 @@ function obtenirFinFenetreAffichage() {
   );
 }
 
-/* Transforme une chaîne RRULE (ex. FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE) en objet lisible */
 function analyserRegleRecurrence(rruleBrute) {
   if (!rruleBrute) return null;
   var regle = {
@@ -663,7 +762,6 @@ function analyserRegleRecurrence(rruleBrute) {
   return regle.freq ? regle : null;
 }
 
-/* Génère les dates de début des occurrences d'un événement (avec ou sans RRULE) */
 function genererDatesOccurrences(dateDebut, rruleBrute, exdates) {
   var regle = analyserRegleRecurrence(rruleBrute);
   if (!regle) {
@@ -737,7 +835,6 @@ function genererDatesOccurrences(dateDebut, rruleBrute, exdates) {
       if (regle.count && totalEvaluations >= regle.count) break;
 
       for (var k = 0; k < joursCibles.length; k++) {
-        /* lundiCourant est un lundi (jour 1). Décalage depuis lundi : (jourCible + 6) % 7 */
         var decalageJour = (joursCibles[k] + 6) % 7;
         var dHebdo = new Date(
           lundiCourant.getFullYear(),
