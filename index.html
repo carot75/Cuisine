@@ -14,6 +14,8 @@
     overflow: hidden;
     position: relative;
   }
+
+  /* Colonne gauche : horloge, date et météo */
   #colonne-gauche {
     position: absolute;
     top: 0;
@@ -23,6 +25,8 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
+
+  /* Colonne droite : planning sur 3 semaines */
   #colonne-droite {
     position: absolute;
     top: 0;
@@ -30,15 +34,14 @@
     right: 0;
     width: 66%;
   }
+
   #colonne-gauche > div { padding: 1.5vw; }
   #horloge { font-size: 5.8vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
   #date { font-size: 1.4vw; color: #8b98a3; margin-top: 0.4vw; text-transform: capitalize; }
 
-  /* Météo actuelle */
+  /* Bloc météo actuelle */
   #meteo { margin-top: 1.1vw; }
-  #meteo-ligne-principale {
-    display: table;
-  }
+  #meteo-ligne-principale { display: table; }
   #meteo-icone {
     display: table-cell;
     vertical-align: middle;
@@ -61,9 +64,7 @@
   #erreur-meteo { font-size: 0.92vw; color: #e5533d; display: none; margin-top: 0.4vw; line-height: 1.35; }
 
   /* Prévisions sur 7 jours */
-  #previsions-7j {
-    margin-top: 0.9vw;
-  }
+  #previsions-7j { margin-top: 0.9vw; }
   .jour-carte {
     display: table;
     width: 100%;
@@ -106,12 +107,9 @@
     text-align: right;
     font-weight: 600;
   }
-  .jour-temp span {
-    color: #8b98a3;
-    font-weight: 400;
-  }
+  .jour-temp span { color: #8b98a3; font-weight: 400; }
 
-  /* Bloc planning 4 semaines x 7 jours à droite */
+  /* Bloc planning 3 semaines x 7 jours */
   #pile {
     position: absolute;
     top: 1vw;
@@ -125,10 +123,10 @@
     height: 100%;
     background: #181f26;
     border-radius: 0.9vw;
-    padding: 0.95vw 1.05vw;
+    padding: 1vw 1.1vw;
   }
   .cal-entete {
-    margin-bottom: 0.5vw;
+    margin-bottom: 0.55vw;
     overflow: hidden;
   }
   .cal-titre-principal {
@@ -138,17 +136,17 @@
   }
   .legende {
     float: right;
-    font-size: 0.98vw;
-    margin-top: 0.15vw;
+    font-size: 1.1vw;
+    margin-top: 0.2vw;
   }
   .legende-item {
     display: inline-block;
-    margin-left: 1vw;
+    margin-left: 1.1vw;
     font-weight: 600;
   }
   .pastille {
-    width: 0.78vw;
-    height: 0.78vw;
+    width: 0.85vw;
+    height: 0.85vw;
     border-radius: 50%;
     display: inline-block;
     vertical-align: middle;
@@ -157,12 +155,12 @@
   .pastille-capucine { background: #ff69b4; }
   .pastille-clemence { background: #ffd43b; }
 
-  /* En-tête Lun -> Dim */
+  /* En-tête des jours de la semaine */
   .jours-semaine-entete {
     display: table;
     width: 100%;
     table-layout: fixed;
-    margin-bottom: 0.25vw;
+    margin-bottom: 0.3vw;
   }
   .jour-semaine-label {
     display: table-cell;
@@ -171,7 +169,7 @@
     font-weight: 700;
     color: #8b98a3;
     text-transform: uppercase;
-    padding: 0.12vw 0;
+    padding: 0.15vw 0;
   }
 
   #statut-calendrier {
@@ -192,36 +190,32 @@
     height: 100%;
     table-layout: fixed;
     border-collapse: separate;
-    border-spacing: 0.32vw;
+    border-spacing: 0.36vw;
   }
   .ligne-semaine {
     display: table-row;
-    height: 25%;
   }
   .case-jour {
     display: table-cell;
     vertical-align: top;
     width: 14.2857%;
-    height: 25%;
     background: #202933;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 0.45vw;
-    padding: 0.24vw 0.32vw;
+    border-radius: 0.5vw;
+    padding: 0.32vw 0.4vw;
     overflow: hidden;
   }
   .case-jour.aujourd-hui {
     border-color: #6ea8fe;
     background: #24303d;
   }
-  .case-jour.jour-passe {
-    opacity: 0.65;
-  }
+  .case-jour.jour-passe { opacity: 0.65; }
   .case-entete-jour {
     overflow: hidden;
     font-size: 0.95vw;
     color: #8b98a3;
-    line-height: 1.1;
-    margin-bottom: 0.14vw;
+    line-height: 1.15;
+    margin-bottom: 0.22vw;
   }
   .numero-jour {
     float: left;
@@ -231,8 +225,8 @@
   .case-jour.aujourd-hui .numero-jour {
     background: #6ea8fe;
     color: #101418;
-    padding: 0.04vw 0.28vw;
-    border-radius: 0.25vw;
+    padding: 0.06vw 0.34vw;
+    border-radius: 0.28vw;
   }
   .mois-court {
     float: right;
@@ -241,20 +235,21 @@
     text-transform: capitalize;
   }
   .case-evenements {
-    height: 78%;
+    height: 80%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
+
+  /* Retour à la ligne automatique pour afficher le détail des RDV en entier */
   .event-puce {
-    font-size: 0.88vw;
-    line-height: 1.18;
+    font-size: 0.82vw;
+    line-height: 1.22;
     padding: 0.18vw 0.32vw;
-    border-radius: 0.22vw;
-    border-left: 0.18vw solid transparent;
+    border-radius: 0.28vw;
+    border-left: 0.24vw solid transparent;
     white-space: normal;
-    overflow: visible;
     word-wrap: break-word;
-    margin-bottom: 0.14vw;
+    margin-bottom: 0.18vw;
   }
   .event-puce.capucine {
     background: rgba(255, 105, 180, 0.18);
@@ -266,13 +261,10 @@
     border-left-color: #ffd43b;
     color: #fff0b3;
   }
-  .event-heure {
-    font-weight: 700;
-    margin-right: 0.18vw;
-  }
+  .event-heure { font-weight: 700; margin-right: 0.22vw; }
   .cal-erreur {
     color: #ff8a80;
-    font-size: 0.82vw;
+    font-size: 0.85vw;
     background: rgba(229, 83, 61, 0.14);
     border: 1px solid rgba(229, 83, 61, 0.4);
     padding: 0.35vw 0.6vw;
@@ -304,7 +296,7 @@
     <div id="pile">
       <div class="cal-bloc-unique">
         <div class="cal-entete">
-          <div class="cal-titre-principal">Planning &mdash; 4 semaines</div>
+          <div class="cal-titre-principal">Planning &mdash; 3 semaines</div>
           <div class="legende">
             <div class="legende-item">
               <span class="pastille pastille-capucine"></span>
@@ -338,7 +330,7 @@
 
 <script>
 /* ============================================================
-   CONFIGURATION : modifie uniquement cette section.
+   CONFIGURATION : paramètres principaux de ton tableau de bord.
    ============================================================ */
 var CONFIG = {
   latitude: 48.862725,
@@ -347,6 +339,7 @@ var CONFIG = {
   fuseauHoraire: "Europe/Paris",
   nbJoursPrevision: 7,
   nbSemainesPlanning: 3,
+  maxJoursEvenement: 31, /* Sécurité anti-boucle si un événement a une durée anormale */
   titreCal1: "Capucine",
   titreCal2: "Cl\u00e9mence",
   icsCal1: "https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbKlOAruzpSD4rwFGhx9g5CtJkeQiQ5PJZbH5BHzM2D5WjW6oRPA5zSTZa1G3_2omP4",
@@ -370,7 +363,7 @@ function requeteTexte(url, callback) {
         if (xhr.status >= 200 && xhr.status < 300) {
           callback(null, xhr.responseText);
         } else if (xhr.status === 0) {
-          callback(new Error(hote + " : HTTP 0 (TLS/r\u00e9seau refus\u00e9)"), null);
+          callback(new Error(hote + " : HTTP 0 (TLS/R\u00e9seau refus\u00e9)"), null);
         } else {
           callback(new Error(hote + " : HTTP " + xhr.status), null);
         }
@@ -537,6 +530,7 @@ function decoderTexteIcs(texte) {
     .replace(/^\s+|\s+$/g, "");
 }
 
+/* Convertit une date ICS (YYYYMMDD ou YYYYMMDDTHHMMSS[Z]) en objet Date */
 function analyserDateIcs(valeurBrute) {
   if (!valeurBrute) return null;
   var parties = valeurBrute.split(":");
@@ -569,6 +563,24 @@ function analyserDateIcs(valeurBrute) {
   return null;
 }
 
+/* Ajoute une durée ICS (ex. P2D ou PT3H) à une date de début */
+function ajouterDureeIcs(dateDebut, dureeBrute) {
+  if (!dateDebut || !dureeBrute) return null;
+  var propre = dureeBrute.replace(/^\s+|\s+$/g, "");
+  var m = propre.match(/^[+-]?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/);
+  if (!m) return null;
+
+  var semaines = m[1] ? parseInt(m[1], 10) : 0;
+  var jours = m[2] ? parseInt(m[2], 10) : 0;
+  var heures = m[3] ? parseInt(m[3], 10) : 0;
+  var minutes = m[4] ? parseInt(m[4], 10) : 0;
+  var secondes = m[5] ? parseInt(m[5], 10) : 0;
+
+  var totalJours = semaines * 7 + jours;
+  var msAjoutes = (((totalJours * 24 + heures) * 60 + minutes) * 60 + secondes) * 1000;
+  return new Date(dateDebut.getTime() + msAjoutes);
+}
+
 function cleDateLocale(dateObj) {
   return (
     dateObj.getFullYear() + "-" +
@@ -577,12 +589,52 @@ function cleDateLocale(dateObj) {
   );
 }
 
+function debutJourLocal(dateObj) {
+  return new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 0, 0, 0, 0);
+}
+
 function obtenirLundiSemaine(dateRef) {
-  var d = new Date(dateRef.getFullYear(), dateRef.getMonth(), dateRef.getDate(), 0, 0, 0, 0);
+  var d = debutJourLocal(dateRef);
   var jourSemaine = d.getDay();
   var decalageLundi = (jourSemaine + 6) % 7;
   d.setDate(d.getDate() - decalageLundi);
   return d;
+}
+
+/* Calcule toutes les clés de jours (AAAA-MM-JJ) couvertes par un événement */
+function obtenirJoursCouverts(dateDebut, dateFin, jourEntier) {
+  var jours = [];
+  var jourCourant = debutJourLocal(dateDebut);
+  var dernierJour = jourCourant;
+
+  if (dateFin && !isNaN(dateFin.getTime()) && dateFin.getTime() > dateDebut.getTime()) {
+    if (jourEntier) {
+      /* Dans ICS, DTEND d'un événement journée entière est exclusif : on s'arrête la veille */
+      dernierJour = new Date(dateFin.getFullYear(), dateFin.getMonth(), dateFin.getDate() - 1, 0, 0, 0, 0);
+    } else {
+      /* Si l'événement finit exactement à 00:00:00, il ne couvre pas ce jour-là */
+      var estMinuitPile =
+        dateFin.getHours() === 0 &&
+        dateFin.getMinutes() === 0 &&
+        dateFin.getSeconds() === 0;
+      dernierJour = estMinuitPile
+        ? new Date(dateFin.getFullYear(), dateFin.getMonth(), dateFin.getDate() - 1, 0, 0, 0, 0)
+        : debutJourLocal(dateFin);
+    }
+  }
+
+  if (dernierJour.getTime() < jourCourant.getTime()) {
+    dernierJour = jourCourant;
+  }
+
+  var garde = 0;
+  while (jourCourant.getTime() <= dernierJour.getTime() && garde < CONFIG.maxJoursEvenement) {
+    jours.push(cleDateLocale(jourCourant));
+    jourCourant = new Date(jourCourant.getFullYear(), jourCourant.getMonth(), jourCourant.getDate() + 1, 0, 0, 0, 0);
+    garde++;
+  }
+
+  return jours;
 }
 
 function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
@@ -602,6 +654,8 @@ function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
 
     var resume = "";
     var dtstart = "";
+    var dtend = "";
+    var duration = "";
 
     for (var l = 0; l < lignes.length; l++) {
       var ligne = lignes[l];
@@ -611,21 +665,35 @@ function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
       } else if (ligne.indexOf("DTSTART") === 0) {
         var idx2 = ligne.indexOf(":");
         if (idx2 !== -1) dtstart = ligne.slice(idx2 + 1).replace(/^\s+|\s+$/g, "");
+      } else if (ligne.indexOf("DTEND") === 0) {
+        var idx3 = ligne.indexOf(":");
+        if (idx3 !== -1) dtend = ligne.slice(idx3 + 1).replace(/^\s+|\s+$/g, "");
+      } else if (ligne.indexOf("DURATION") === 0) {
+        var idx4 = ligne.indexOf(":");
+        if (idx4 !== -1) duration = ligne.slice(idx4 + 1).replace(/^\s+|\s+$/g, "");
       }
     }
 
-    var dateObj = analyserDateIcs(dtstart);
-    if (dateObj && !isNaN(dateObj.getTime()) && resume) {
+    var dateDebut = analyserDateIcs(dtstart);
+    if (dateDebut && !isNaN(dateDebut.getTime()) && resume) {
+      var dateFin = dtend ? analyserDateIcs(dtend) : ajouterDureeIcs(dateDebut, duration);
       var dParties = dtstart.split(":");
       var dPropre = dParties[dParties.length - 1].replace(/^\s+|\s+$/g, "");
-      evenements.push({
-        personne: personne,
-        classeCouleur: classeCouleur,
-        titre: resume,
-        date: dateObj,
-        cleJour: cleDateLocale(dateObj),
-        jourEntier: /^\d{8}$/.test(dPropre)
-      });
+      var estJourEntier = /^\d{8}$/.test(dPropre);
+      var joursCouverts = obtenirJoursCouverts(dateDebut, dateFin, estJourEntier);
+
+      for (var k = 0; k < joursCouverts.length; k++) {
+        var cleJour = joursCouverts[k];
+        var estPremierJour = (k === 0);
+        evenements.push({
+          personne: personne,
+          classeCouleur: classeCouleur,
+          titre: resume,
+          date: dateDebut,
+          cleJour: cleJour,
+          jourEntier: estJourEntier || !estPremierJour
+        });
+      }
     }
   }
 
@@ -680,11 +748,12 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
 
   var maintenant = new Date();
   var cleAujourdhui = cleDateLocale(maintenant);
-  var debutAujourdhui = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate(), 0, 0, 0, 0);
+  var debutAujourdhui = debutJourLocal(maintenant);
   var lundiDepart = obtenirLundiSemaine(maintenant);
-  var hauteurLignePct = (100 / CONFIG.nbSemainesPlanning).toFixed(4) + "%";
+  var nbSemaines = Math.max(1, parseInt(CONFIG.nbSemainesPlanning, 10) || 3);
+  var hauteurLignePct = (100 / nbSemaines).toFixed(4) + "%";
 
-  for (var s = 0; s < CONFIG.nbSemainesPlanning; s++) {
+  for (var s = 0; s < nbSemaines; s++) {
     var ligneSemaine = document.createElement("div");
     ligneSemaine.className = "ligne-semaine";
     ligneSemaine.style.height = hauteurLignePct;
