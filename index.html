@@ -15,7 +15,7 @@
     position: relative;
   }
 
-  /* Colonne gauche : horloge, date et météo */
+  /* Colonne gauche : horloge, date, météo et événements du jour */
   #colonne-gauche {
     position: absolute;
     top: 0;
@@ -63,7 +63,7 @@
   #meteo-details { font-size: 0.9vw; color: #8b98a3; margin-top: 0.2vw; }
   #erreur-meteo { font-size: 0.92vw; color: #e5533d; display: none; margin-top: 0.4vw; line-height: 1.35; }
 
-  /* Évolution météo heure par heure (journée en cours) */
+  /* Évolution météo heure par heure (jusqu'à 8 prochaines heures, max 23h) */
   #meteo-horaire {
     margin-top: 0.85vw;
     background: #181f26;
@@ -154,6 +154,53 @@
     font-weight: 600;
   }
   .jour-temp span { color: #8b98a3; font-weight: 400; }
+
+  /* Section des événements du jour sous les prévisions 7 jours */
+  #evenements-du-jour {
+    margin-top: 0.9vw;
+    background: #181f26;
+    border-radius: 0.5vw;
+    padding: 0.6vw 0.7vw;
+  }
+  .events-jour-titre-section {
+    font-size: 0.98vw;
+    font-weight: 700;
+    color: #f4f6f8;
+    margin-bottom: 0.42vw;
+  }
+  .carte-event-jour {
+    background: #202933;
+    border-left: 0.25vw solid #6ea8fe;
+    border-radius: 0.35vw;
+    padding: 0.34vw 0.5vw;
+    margin-bottom: 0.32vw;
+    font-size: 0.86vw;
+    line-height: 1.25;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+  .carte-event-jour:last-child { margin-bottom: 0; }
+  .carte-event-jour.capucine {
+    border-left-color: #ff69b4;
+    background: rgba(255, 105, 180, 0.14);
+    color: #ffd1e8;
+  }
+  .carte-event-jour.clemence {
+    border-left-color: #ffd43b;
+    background: rgba(255, 212, 59, 0.14);
+    color: #fff0b3;
+  }
+  .event-jour-meta {
+    font-size: 0.78vw;
+    font-weight: 700;
+    color: #cfd8e3;
+    margin-right: 0.35vw;
+  }
+  .aucun-event-jour {
+    font-size: 0.84vw;
+    color: #8b98a3;
+    padding: 0.2vw 0;
+  }
 
   /* Bloc planning 3 semaines x 7 jours */
   #pile {
@@ -336,6 +383,7 @@
       </div>
       <div id="meteo-horaire"></div>
       <div id="previsions-7j"></div>
+      <div id="evenements-du-jour"></div>
     </div>
   </div>
 
@@ -385,7 +433,9 @@ var CONFIG = {
   ville: "Paris",
   fuseauHoraire: "Europe/Paris",
   nbJoursPrevision: 7,
-  maxHeuresJournee: 8, /* Affiche au maximum les 8 prochaines heures de la journée (jusqu'à 23h) */
+  maxHeuresJournee: 8,
+  titreEvenementsJour: "\u00c9v\u00e9nements du jour",
+  messageAucunEventJour: "Aucun \u00e9v\u00e9nement aujourd\u2019hui",
   nbSemainesPlanning: 3,
   maxJoursEvenement: 31,
   maxOccurrencesRecurrence: 250,
@@ -511,7 +561,6 @@ function formaterJourCourt(dateIso, index) {
   return JOURS_COURTS_FR[dateObj.getDay()];
 }
 
-/* Remplit la section météo heure par heure pour aujourd'hui à partir de l'heure courante */
 function afficherMeteoHoraire(hourly) {
   var conteneurHoraire = document.getElementById("meteo-horaire");
   if (!conteneurHoraire) return;
@@ -526,11 +575,10 @@ function afficherMeteoHoraire(hourly) {
   var cleAujourdhui = cleDateLocale(maintenant);
   var heureActuelle = maintenant.getHours();
   var nbAffiches = 0;
-  var maxHeures = Math.max(1, parseInt(CONFIG.maxHeuresJournee, 10) || 24);
+  var maxHeures = Math.max(1, parseInt(CONFIG.maxHeuresJournee, 10) || 8);
 
   for (var i = 0; i < hourly.time.length; i++) {
     var horodatage = String(hourly.time[i] || "");
-    /* Format Open-Meteo : "AAAA-MM-JJTHH:MM" */
     var parties = horodatage.split("T");
     if (parties.length !== 2) continue;
 
@@ -539,7 +587,7 @@ function afficherMeteoHoraire(hourly) {
 
     var hParts = parties[1].split(":");
     var heureSlot = parseInt(hParts[0], 10);
-    if (isNaN(heureSlot) || heureSlot < heureActuelle) continue;
+    if (isNaN(heureSlot) || heureSlot < heureActuelle || heureSlot > 23) continue;
 
     var codeH = hourly.weather_code ? hourly.weather_code[i] : 0;
     var tempH = hourly.temperature_2m ? Math.round(hourly.temperature_2m[i]) : 0;
@@ -1022,6 +1070,37 @@ function formaterHeureCourte(dateObj, jourEntier) {
   return h + "h" + deuxChiffres(min);
 }
 
+/* Affiche la liste détaillée des événements du jour sous les prévisions sur 7 jours */
+function afficherEvenementsDuJour(evenementsParJour) {
+  var conteneurJour = document.getElementById("evenements-du-jour");
+  if (!conteneurJour) return;
+
+  var cleAujourdhui = cleDateLocale(new Date());
+  var eventsAuj = (evenementsParJour && evenementsParJour[cleAujourdhui]) ? evenementsParJour[cleAujourdhui] : [];
+
+  var html = '<div class="events-jour-titre-section">' + CONFIG.titreEvenementsJour + '</div>';
+
+  if (eventsAuj.length === 0) {
+    html += '<div class="aucun-event-jour">' + CONFIG.messageAucunEventJour + '</div>';
+    conteneurJour.innerHTML = html;
+    return;
+  }
+
+  for (var i = 0; i < eventsAuj.length; i++) {
+    var ev = eventsAuj[i];
+    var heureTexte = formaterHeureCourte(ev.date, ev.jourEntier);
+    var etiquette = ev.personne + (heureTexte ? " \u00b7 " + heureTexte : "");
+
+    html +=
+      '<div class="carte-event-jour ' + ev.classeCouleur + '">' +
+        '<span class="event-jour-meta">[' + etiquette + ']</span>' +
+        '<span>' + ev.titre + '</span>' +
+      '</div>';
+  }
+
+  conteneurJour.innerHTML = html;
+}
+
 function recupererIcs(url, callback) {
   var baseRelais = String(CONFIG.relaisAppsScript || "").replace(/^\s+|\s+$/g, "");
   if (!baseRelais) {
@@ -1149,6 +1228,7 @@ function majPlanning4Semaines() {
       }
     }
 
+    afficherEvenementsDuJour(evenementsParJour);
     construireGrillePlanning(evenementsParJour, erreurs);
   }
 
