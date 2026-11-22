@@ -5,25 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Tableau cuisine</title>
 <style>
-  :root {
-    --bg: #101418;
-    --fg: #f4f6f8;
-    --muted: #8b98a3;
-    --card: #181f26;
-    --card-soft: #202933;
-    --border: rgba(255, 255, 255, 0.08);
-    --capucine: #ff69b4; /* Rose pour Capucine */
-    --clemence: #ffd43b; /* Jaune pour Clémence */
-  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
-    background: var(--bg);
-    color: var(--fg);
-    font-family: Helvetica, Arial, system-ui, sans-serif;
-    display: flex;
-    flex-direction: column;
+    background: #101418;
+    color: #f4f6f8;
+    font-family: Helvetica, Arial, sans-serif;
     overflow: hidden;
+    position: relative;
   }
   #colonne-gauche {
     position: absolute;
@@ -31,8 +20,8 @@
     bottom: 0;
     left: 0;
     width: 34%;
-    display: flex;
-    flex-direction: column;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   #colonne-droite {
     position: absolute;
@@ -40,220 +29,230 @@
     bottom: 0;
     right: 0;
     width: 66%;
-    display: flex;
-    flex-direction: column;
   }
-  #colonne-gauche > div { padding: 1.8vw 1.6vw; }
-  #horloge { font-size: 6.4vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-  #date { font-size: 1.5vw; color: var(--muted); margin-top: 0.5vw; text-transform: capitalize; }
+  #colonne-gauche > div { padding: 1.6vw; }
+  #horloge { font-size: 6vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  #date { font-size: 1.45vw; color: #8b98a3; margin-top: 0.45vw; text-transform: capitalize; }
 
   /* Météo actuelle */
-  #meteo { margin-top: 1.3vw; }
+  #meteo { margin-top: 1.2vw; }
   #meteo-ligne-principale {
-    display: flex;
-    align-items: center;
-    gap: 0.9vw;
+    display: table;
+  }
+  #meteo-icone {
+    display: table-cell;
+    vertical-align: middle;
+    padding-right: 0.8vw;
   }
   #meteo-icone .icone-svg {
-    width: 3.3vw;
-    height: 3.3vw;
+    width: 3.2vw;
+    height: 3.2vw;
     display: block;
   }
-  #meteo-temp { font-size: 3.1vw; font-weight: 300; line-height: 1.1; }
-  #meteo-desc { font-size: 1.25vw; color: var(--muted); margin-top: 0.3vw; }
-  #meteo-details { font-size: 0.95vw; color: var(--muted); margin-top: 0.25vw; }
-  #erreur-meteo { font-size: 1.05vw; color: #e5533d; display: none; margin-top: 0.5vw; }
+  #meteo-temp {
+    display: table-cell;
+    vertical-align: middle;
+    font-size: 3vw;
+    font-weight: 300;
+    line-height: 1.1;
+  }
+  #meteo-desc { font-size: 1.2vw; color: #8b98a3; margin-top: 0.25vw; }
+  #meteo-details { font-size: 0.92vw; color: #8b98a3; margin-top: 0.2vw; }
+  #erreur-meteo { font-size: 1vw; color: #e5533d; display: none; margin-top: 0.4vw; }
 
   /* Prévisions sur 7 jours */
   #previsions-7j {
-    margin-top: 1.1vw;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35vw;
+    margin-top: 1vw;
   }
   .jour-carte {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--card);
-    padding: 0.38vw 0.75vw;
-    border-radius: 0.55vw;
-    font-size: 0.95vw;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    background: #181f26;
+    padding: 0.36vw 0.7vw;
+    border-radius: 0.5vw;
+    font-size: 0.92vw;
+    margin-bottom: 0.32vw;
   }
   .jour-nom {
-    width: 24%;
+    display: table-cell;
+    vertical-align: middle;
+    width: 26%;
     font-weight: 600;
     text-transform: capitalize;
   }
   .jour-icone {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
   }
   .jour-icone .icone-svg {
-    width: 1.5vw;
-    height: 1.5vw;
-    display: block;
+    width: 1.45vw;
+    height: 1.45vw;
+    display: inline-block;
+    vertical-align: middle;
   }
   .jour-pluie {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: right;
     color: #6ea8fe;
-    font-size: 0.9vw;
-    margin-right: 0.6vw;
-    white-space: nowrap;
+    font-size: 0.86vw;
+    padding-right: 0.5vw;
   }
   .jour-temp {
-    white-space: nowrap;
+    display: table-cell;
+    vertical-align: middle;
+    text-align: right;
     font-weight: 600;
   }
   .jour-temp span {
-    color: var(--muted);
+    color: #8b98a3;
     font-weight: 400;
   }
 
   /* Bloc planning 4 semaines x 7 jours à droite */
   #pile {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 1.2vw 1.4vw 1.2vw 0.4vw;
+    position: absolute;
+    top: 1.1vw;
+    right: 1.2vw;
+    bottom: 1.1vw;
+    left: 0.4vw;
   }
   .cal-bloc-unique {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: var(--card);
-    border-radius: 1vw;
-    overflow: hidden;
-    padding: 1.1vw 1.2vw;
+    width: 100%;
+    height: 100%;
+    background: #181f26;
+    border-radius: 0.9vw;
+    padding: 1vw 1.1vw;
+    position: relative;
   }
   .cal-entete {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.8vw;
-    gap: 1vw;
+    margin-bottom: 0.65vw;
+    overflow: hidden;
   }
   .cal-titre-principal {
-    font-size: 1.55vw;
+    float: left;
+    font-size: 1.45vw;
     font-weight: 700;
   }
   .legende {
-    display: flex;
-    align-items: center;
-    gap: 1.2vw;
-    font-size: 1.05vw;
+    float: right;
+    font-size: 1vw;
+    margin-top: 0.2vw;
   }
   .legende-item {
-    display: flex;
-    align-items: center;
-    gap: 0.45vw;
+    display: inline-block;
+    margin-left: 1vw;
     font-weight: 600;
   }
   .pastille {
-    width: 0.85vw;
-    height: 0.85vw;
+    width: 0.8vw;
+    height: 0.8vw;
     border-radius: 50%;
     display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.35vw;
   }
-  .pastille-capucine { background: var(--capucine); }
-  .pastille-clemence { background: var(--clemence); }
+  .pastille-capucine { background: #ff69b4; }
+  .pastille-clemence { background: #ffd43b; }
 
   /* En-tête Lun -> Dim */
   .jours-semaine-entete {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 0.45vw;
-    margin-bottom: 0.45vw;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    margin-bottom: 0.35vw;
   }
   .jour-semaine-label {
+    display: table-cell;
     text-align: center;
-    font-size: 0.95vw;
+    font-size: 0.88vw;
     font-weight: 700;
-    color: var(--muted);
+    color: #8b98a3;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 0.2vw 0;
+    padding: 0.15vw 0;
   }
 
-  /* Grille de 4 semaines (28 cases) */
+  /* Grille de 4 semaines compatible iOS 9 */
   #grille-4-semaines {
-    flex: 1;
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    grid-template-rows: repeat(4, minmax(0, 1fr));
-    gap: 0.45vw;
-    min-height: 0;
+    display: table;
+    width: 100%;
+    height: 85%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0.35vw;
+  }
+  .ligne-semaine {
+    display: table-row;
+    height: 25%;
   }
   .case-jour {
-    background: var(--card-soft);
-    border: 1px solid var(--border);
-    border-radius: 0.55vw;
-    padding: 0.35vw 0.42vw;
-    display: flex;
-    flex-direction: column;
-    gap: 0.22vw;
+    display: table-cell;
+    vertical-align: top;
+    width: 14.2857%;
+    height: 100%;
+    background: #202933;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.45vw;
+    padding: 0.28vw 0.35vw;
     overflow: hidden;
-    min-height: 0;
   }
   .case-jour.aujourd-hui {
     border-color: #6ea8fe;
-    box-shadow: inset 0 0 0 1px rgba(110, 168, 254, 0.45);
     background: #24303d;
   }
   .case-jour.jour-passe {
     opacity: 0.65;
   }
   .case-entete-jour {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.82vw;
-    color: var(--muted);
-    line-height: 1.1;
-    margin-bottom: 0.08vw;
+    overflow: hidden;
+    font-size: 0.78vw;
+    color: #8b98a3;
+    line-height: 1.15;
+    margin-bottom: 0.18vw;
   }
   .numero-jour {
+    float: left;
     font-weight: 700;
-    color: var(--fg);
+    color: #f4f6f8;
   }
   .case-jour.aujourd-hui .numero-jour {
     background: #6ea8fe;
     color: #101418;
-    padding: 0.08vw 0.35vw;
-    border-radius: 0.35vw;
+    padding: 0.05vw 0.3vw;
+    border-radius: 0.28vw;
   }
   .mois-court {
-    font-size: 0.72vw;
-    color: var(--muted);
+    float: right;
+    font-size: 0.68vw;
+    color: #8b98a3;
     text-transform: capitalize;
   }
   .case-evenements {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.2vw;
+    max-height: 82%;
     overflow-y: auto;
-    min-height: 0;
+    -webkit-overflow-scrolling: touch;
   }
   .event-puce {
-    font-size: 0.74vw;
+    font-size: 0.7vw;
     line-height: 1.2;
-    padding: 0.18vw 0.32vw;
-    border-radius: 0.3vw;
-    border-left: 0.22vw solid transparent;
+    padding: 0.15vw 0.28vw;
+    border-radius: 0.25vw;
+    border-left: 0.2vw solid transparent;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-bottom: 0.16vw;
   }
   .event-puce.capucine {
     background: rgba(255, 105, 180, 0.18);
-    border-left-color: var(--capucine);
+    border-left-color: #ff69b4;
     color: #ffd1e8;
   }
   .event-puce.clemence {
     background: rgba(255, 212, 59, 0.18);
-    border-left-color: var(--clemence);
+    border-left-color: #ffd43b;
     color: #fff0b3;
   }
   .event-heure {
@@ -261,13 +260,13 @@
     margin-right: 0.2vw;
   }
   .cal-erreur {
-    grid-column: 1 / -1;
     color: #ff8a80;
-    font-size: 0.95vw;
+    font-size: 0.9vw;
     background: rgba(229, 83, 61, 0.14);
     border: 1px solid rgba(229, 83, 61, 0.4);
-    padding: 0.6vw 0.8vw;
-    border-radius: 0.55vw;
+    padding: 0.45vw 0.7vw;
+    border-radius: 0.45vw;
+    margin-bottom: 0.4vw;
   }
 </style>
 </head>
@@ -284,7 +283,7 @@
         </div>
         <div id="meteo-desc"></div>
         <div id="meteo-details"></div>
-        <div id="erreur-meteo">Météo indisponible</div>
+        <div id="erreur-meteo">M&eacute;t&eacute;o indisponible</div>
       </div>
       <div id="previsions-7j"></div>
     </div>
@@ -294,7 +293,7 @@
     <div id="pile">
       <div class="cal-bloc-unique">
         <div class="cal-entete">
-          <div class="cal-titre-principal">Planning — 4 semaines</div>
+          <div class="cal-titre-principal">Planning &mdash; 4 semaines</div>
           <div class="legende">
             <div class="legende-item">
               <span class="pastille pastille-capucine"></span>
@@ -302,7 +301,7 @@
             </div>
             <div class="legende-item">
               <span class="pastille pastille-clemence"></span>
-              <span id="legende-clemence">Clémence</span>
+              <span id="legende-clemence">Cl&eacute;mence</span>
             </div>
           </div>
         </div>
@@ -317,6 +316,7 @@
           <div class="jour-semaine-label">Dim</div>
         </div>
 
+        <div id="statut-calendrier"></div>
         <div id="grille-4-semaines"></div>
       </div>
     </div>
@@ -326,7 +326,7 @@
 /* ============================================================
    CONFIGURATION : modifie uniquement cette section.
    ============================================================ */
-const CONFIG = {
+var CONFIG = {
   latitude: 48.862725,
   longitude: 2.287592,
   ville: "Paris",
@@ -334,58 +334,93 @@ const CONFIG = {
   nbJoursPrevision: 7,
   nbSemainesPlanning: 4,
   titreCal1: "Capucine",
-  titreCal2: "Clémence",
+  titreCal2: "Cl\u00e9mence",
   icsCal1: "https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbKlOAruzpSD4rwFGhx9g5CtJkeQiQ5PJZbH5BHzM2D5WjW6oRPA5zSTZa1G3_2omP4",
   icsCal2: "https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbJpPwPEuos8HZDEWsf74oGRLyyWbpSACEUkaH8GxmwzZFotlQNxqhPjZeMRiizib-E",
   relaisAppsScript: "https://script.google.com/macros/s/AKfycbypC4mEbYdl_LQsuVWzrJJtYJp7j8x_VofokPjfm49EIOkViEQQQ5WaxT59CR0XiFNbuA/exec"
 };
 /* ================= FIN DE LA CONFIGURATION ================= */
 
+/* Requête HTTP compatible iOS 9 via XMLHttpRequest */
+function requeteTexte(url, callback) {
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          callback(null, xhr.responseText);
+        } else {
+          callback(new Error("HTTP " + xhr.status), null);
+        }
+      }
+    };
+    xhr.onerror = function () {
+      callback(new Error("Erreur r\u00e9seau"), null);
+    };
+    xhr.send();
+  } catch (err) {
+    callback(err, null);
+  }
+}
+
+function deuxChiffres(n) {
+  return (n < 10 ? "0" : "") + n;
+}
+
 function obtenirIconeMeteo(code) {
   if (code === 0) {
-    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Soleil"><circle cx="32" cy="32" r="13" fill="#f7b731"/><g stroke="#f7b731" stroke-width="4" stroke-linecap="round"><line x1="32" y1="6" x2="32" y2="13"/><line x1="32" y1="51" x2="32" y2="58"/><line x1="6" y1="32" x2="13" y2="32"/><line x1="51" y1="32" x2="58" y2="32"/><line x1="13.6" y1="13.6" x2="18.6" y2="18.6"/><line x1="45.4" y1="45.4" x2="50.4" y2="50.4"/><line x1="50.4" y1="13.6" x2="45.4" y2="18.6"/><line x1="18.6" y1="45.4" x2="13.6" y2="50.4"/></g></svg>';
+    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="13" fill="#f7b731"/><g stroke="#f7b731" stroke-width="4" stroke-linecap="round"><line x1="32" y1="6" x2="32" y2="13"/><line x1="32" y1="51" x2="32" y2="58"/><line x1="6" y1="32" x2="13" y2="32"/><line x1="51" y1="32" x2="58" y2="32"/><line x1="13.6" y1="13.6" x2="18.6" y2="18.6"/><line x1="45.4" y1="45.4" x2="50.4" y2="50.4"/><line x1="50.4" y1="13.6" x2="45.4" y2="18.6"/><line x1="18.6" y1="45.4" x2="13.6" y2="50.4"/></g></svg>';
   }
   if (code === 1 || code === 2) {
-    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Partiellement nuageux"><circle cx="24" cy="23" r="10" fill="#f7b731"/><g stroke="#f7b731" stroke-width="3.2" stroke-linecap="round"><line x1="24" y1="5" x2="24" y2="9"/><line x1="6" y1="23" x2="10" y2="23"/><line x1="11.3" y1="10.3" x2="14.1" y2="13.1"/><line x1="36.7" y1="10.3" x2="33.9" y2="13.1"/></g><path d="M22 47h24a10 10 0 0 0 1.4-19.9A13 13 0 0 0 22.5 24 9 9 0 0 0 22 47z" fill="#cfd8e3"/></svg>';
+    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none"><circle cx="24" cy="23" r="10" fill="#f7b731"/><g stroke="#f7b731" stroke-width="3.2" stroke-linecap="round"><line x1="24" y1="5" x2="24" y2="9"/><line x1="6" y1="23" x2="10" y2="23"/><line x1="11.3" y1="10.3" x2="14.1" y2="13.1"/><line x1="36.7" y1="10.3" x2="33.9" y2="13.1"/></g><path d="M22 47h24a10 10 0 0 0 1.4-19.9A13 13 0 0 0 22.5 24 9 9 0 0 0 22 47z" fill="#cfd8e3"/></svg>';
   }
   if (code === 3) {
-    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Couvert"><path d="M18 46h29a11 11 0 0 0 1.5-21.9A14.5 14.5 0 0 0 21.2 21 10 10 0 0 0 18 46z" fill="#b8c4d0"/></svg>';
+    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none"><path d="M18 46h29a11 11 0 0 0 1.5-21.9A14.5 14.5 0 0 0 21.2 21 10 10 0 0 0 18 46z" fill="#b8c4d0"/></svg>';
   }
   if (code === 45 || code === 48) {
-    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Brouillard"><path d="M19 32h27a9.5 9.5 0 0 0 1.3-18.9A12.5 12.5 0 0 0 22.8 11 8.5 8.5 0 0 0 19 32z" fill="#9aa7b4"/><g stroke="#cfd8e3" stroke-width="3.5" stroke-linecap="round"><line x1="14" y1="40" x2="50" y2="40"/><line x1="18" y1="48" x2="46" y2="48"/></g></svg>';
+    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none"><path d="M19 32h27a9.5 9.5 0 0 0 1.3-18.9A12.5 12.5 0 0 0 22.8 11 8.5 8.5 0 0 0 19 32z" fill="#9aa7b4"/><g stroke="#cfd8e3" stroke-width="3.5" stroke-linecap="round"><line x1="14" y1="40" x2="50" y2="40"/><line x1="18" y1="48" x2="46" y2="48"/></g></svg>';
   }
   if ((code >= 51 && code <= 65) || (code >= 80 && code <= 82)) {
-    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Pluie"><path d="M18 36h29a10.5 10.5 0 0 0 1.4-20.9A14 14 0 0 0 21.5 13 9.5 9.5 0 0 0 18 36z" fill="#9fb0c2"/><g fill="#5ca4ff"><path d="M23 41c0 0-4 5.5-4 8a4 4 0 0 0 8 0c0-2.5-4-8-4-8z"/><path d="M34 43c0 0-4 5.5-4 8a4 4 0 0 0 8 0c0-2.5-4-8-4-8z"/><path d="M45 41c0 0-4 5.5-4 8a4 4 0 0 0 8 0c0-2.5-4-8-4-8z"/></g></svg>';
+    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none"><path d="M18 36h29a10.5 10.5 0 0 0 1.4-20.9A14 14 0 0 0 21.5 13 9.5 9.5 0 0 0 18 36z" fill="#9fb0c2"/><g fill="#5ca4ff"><path d="M23 41c0 0-4 5.5-4 8a4 4 0 0 0 8 0c0-2.5-4-8-4-8z"/><path d="M34 43c0 0-4 5.5-4 8a4 4 0 0 0 8 0c0-2.5-4-8-4-8z"/><path d="M45 41c0 0-4 5.5-4 8a4 4 0 0 0 8 0c0-2.5-4-8-4-8z"/></g></svg>';
   }
   if (code >= 71 && code <= 75) {
-    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Neige"><path d="M18 35h29a10.5 10.5 0 0 0 1.4-20.9A14 14 0 0 0 21.5 12 9.5 9.5 0 0 0 18 35z" fill="#b8c4d0"/><g fill="#e8f3ff"><circle cx="23" cy="45" r="3.2"/><circle cx="34" cy="49" r="3.2"/><circle cx="44" cy="45" r="3.2"/></g></svg>';
+    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none"><path d="M18 35h29a10.5 10.5 0 0 0 1.4-20.9A14 14 0 0 0 21.5 12 9.5 9.5 0 0 0 18 35z" fill="#b8c4d0"/><g fill="#e8f3ff"><circle cx="23" cy="45" r="3.2"/><circle cx="34" cy="49" r="3.2"/><circle cx="44" cy="45" r="3.2"/></g></svg>';
   }
   if (code >= 95) {
-    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Orage"><path d="M18 34h29a10.5 10.5 0 0 0 1.4-20.9A14 14 0 0 0 21.5 11 9.5 9.5 0 0 0 18 34z" fill="#7d8d9e"/><polygon points="34,32 25,46 32,46 29,57 41,42 34,42" fill="#ffd43b"/></svg>';
+    return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none"><path d="M18 34h29a10.5 10.5 0 0 0 1.4-20.9A14 14 0 0 0 21.5 11 9.5 9.5 0 0 0 18 34z" fill="#7d8d9e"/><polygon points="34,32 25,46 32,46 29,57 41,42 34,42" fill="#ffd43b"/></svg>';
   }
-  return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Météo"><path d="M18 44h29a11 11 0 0 0 1.5-21.9A14.5 14.5 0 0 0 21.2 19 10 10 0 0 0 18 44z" fill="#b8c4d0"/></svg>';
+  return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none"><path d="M18 44h29a11 11 0 0 0 1.5-21.9A14.5 14.5 0 0 0 21.2 19 10 10 0 0 0 18 44z" fill="#b8c4d0"/></svg>';
 }
+
+var JOURS_SEMAINE_FR = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+var JOURS_COURTS_FR = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
+var MOIS_FR = [
+  "janvier", "f\u00e9vrier", "mars", "avril", "mai", "juin",
+  "juillet", "ao\u00fbt", "septembre", "octobre", "novembre", "d\u00e9cembre"
+];
+var MOIS_COURTS_FR = [
+  "janv.", "f\u00e9vr.", "mars", "avr.", "mai", "juin",
+  "juil.", "ao\u00fbt", "sept.", "oct.", "nov.", "d\u00e9c."
+];
 
 function majHorloge() {
   try {
-    const maintenant = new Date();
-    const elHeure = document.getElementById("horloge");
-    const elDate = document.getElementById("date");
+    var maintenant = new Date();
+    var elHeure = document.getElementById("horloge");
+    var elDate = document.getElementById("date");
     if (elHeure) {
-      elHeure.textContent =
-        String(maintenant.getHours()).padStart(2, "0") + ":" +
-        String(maintenant.getMinutes()).padStart(2, "0");
+      elHeure.textContent = deuxChiffres(maintenant.getHours()) + ":" + deuxChiffres(maintenant.getMinutes());
     }
     if (elDate) {
-      elDate.textContent = maintenant.toLocaleDateString("fr-FR", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-      });
+      elDate.textContent =
+        JOURS_SEMAINE_FR[maintenant.getDay()] + " " +
+        maintenant.getDate() + " " +
+        MOIS_FR[maintenant.getMonth()] + " " +
+        maintenant.getFullYear();
     }
   } catch (e) {
-    console.error("Erreur horloge :", e);
+    if (window.console && console.error) console.error("Erreur horloge :", e);
   }
 }
 majHorloge();
@@ -393,71 +428,78 @@ setInterval(majHorloge, 5000);
 
 function formaterJourCourt(dateIso, index) {
   if (index === 0) return "Auj.";
-  const parties = String(dateIso || "").split("-").map(Number);
-  if (parties.length !== 3 || parties.some(isNaN)) return "";
-  const dateObj = new Date(parties[0], parties[1] - 1, parties[2]);
-  return dateObj.toLocaleDateString("fr-FR", { weekday: "short" });
+  var parties = String(dateIso || "").split("-");
+  if (parties.length !== 3) return "";
+  var a = parseInt(parties[0], 10);
+  var m = parseInt(parties[1], 10);
+  var j = parseInt(parties[2], 10);
+  if (isNaN(a) || isNaN(m) || isNaN(j)) return "";
+  var dateObj = new Date(a, m - 1, j);
+  return JOURS_COURTS_FR[dateObj.getDay()];
 }
 
-async function majMeteo() {
-  const elErreur = document.getElementById("erreur-meteo");
-  try {
-    const url =
-      "https://api.open-meteo.com/v1/forecast" +
-      "?latitude=" + encodeURIComponent(CONFIG.latitude) +
-      "&longitude=" + encodeURIComponent(CONFIG.longitude) +
-      "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m" +
-      "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
-      "&timezone=" + encodeURIComponent(CONFIG.fuseauHoraire);
+function majMeteo() {
+  var elErreur = document.getElementById("erreur-meteo");
+  var url =
+    "https://api.open-meteo.com/v1/forecast" +
+    "?latitude=" + encodeURIComponent(CONFIG.latitude) +
+    "&longitude=" + encodeURIComponent(CONFIG.longitude) +
+    "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m" +
+    "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
+    "&timezone=" + encodeURIComponent(CONFIG.fuseauHoraire);
 
-    const reponse = await fetch(url);
-    if (!reponse.ok) throw new Error("HTTP " + reponse.status);
-    const donnees = await reponse.json();
-
-    if (!donnees.current || !donnees.daily || !Array.isArray(donnees.daily.time)) {
-      throw new Error("Structure météo inattendue");
+  requeteTexte(url, function (err, texte) {
+    if (err || !texte) {
+      if (elErreur) elErreur.style.display = "block";
+      return;
     }
+    try {
+      var donnees = JSON.parse(texte);
+      if (!donnees.current || !donnees.daily || !donnees.daily.time) {
+        if (elErreur) elErreur.style.display = "block";
+        return;
+      }
 
-    const codeActuel = donnees.current.weather_code;
-    const tempActuelle = Math.round(donnees.current.temperature_2m ?? 0);
-    const ventActuel = Math.round(donnees.current.wind_speed_10m ?? 0);
-    const minAuj = Math.round(donnees.daily.temperature_2m_min?.[0] ?? 0);
-    const maxAuj = Math.round(donnees.daily.temperature_2m_max?.[0] ?? 0);
-    const pluieAuj = donnees.daily.precipitation_probability_max?.[0] ?? 0;
+      var codeActuel = donnees.current.weather_code;
+      var tempActuelle = Math.round(donnees.current.temperature_2m || 0);
+      var ventActuel = Math.round(donnees.current.wind_speed_10m || 0);
+      var minAuj = Math.round((donnees.daily.temperature_2m_min && donnees.daily.temperature_2m_min[0]) || 0);
+      var maxAuj = Math.round((donnees.daily.temperature_2m_max && donnees.daily.temperature_2m_max[0]) || 0);
+      var pluieAuj = (donnees.daily.precipitation_probability_max && donnees.daily.precipitation_probability_max[0]) || 0;
 
-    document.getElementById("meteo-icone").innerHTML = obtenirIconeMeteo(codeActuel);
-    document.getElementById("meteo-temp").textContent = tempActuelle + " °C";
-    document.getElementById("meteo-desc").textContent = CONFIG.ville;
-    document.getElementById("meteo-details").textContent =
-      "Min " + minAuj + "° / Max " + maxAuj + "° · Pluie " + pluieAuj + "% · Vent " + ventActuel + " km/h";
+      document.getElementById("meteo-icone").innerHTML = obtenirIconeMeteo(codeActuel);
+      document.getElementById("meteo-temp").textContent = tempActuelle + " \u00b0C";
+      document.getElementById("meteo-desc").textContent = CONFIG.ville;
+      document.getElementById("meteo-details").textContent =
+        "Min " + minAuj + "\u00b0 / Max " + maxAuj + "\u00b0 \u00b7 Pluie " + pluieAuj + "% \u00b7 Vent " + ventActuel + " km/h";
 
-    const conteneur7J = document.getElementById("previsions-7j");
-    conteneur7J.innerHTML = "";
+      var conteneur7J = document.getElementById("previsions-7j");
+      conteneur7J.innerHTML = "";
 
-    const nbJours = Math.min(CONFIG.nbJoursPrevision, donnees.daily.time.length);
-    for (let i = 0; i < nbJours; i++) {
-      const dateIso = donnees.daily.time[i];
-      const codeJour = donnees.daily.weather_code?.[i];
-      const pluieJour = donnees.daily.precipitation_probability_max?.[i] ?? 0;
-      const minJour = Math.round(donnees.daily.temperature_2m_min?.[i] ?? 0);
-      const maxJour = Math.round(donnees.daily.temperature_2m_max?.[i] ?? 0);
+      var nbJours = Math.min(CONFIG.nbJoursPrevision, donnees.daily.time.length);
+      for (var i = 0; i < nbJours; i++) {
+        var dateIso = donnees.daily.time[i];
+        var codeJour = donnees.daily.weather_code ? donnees.daily.weather_code[i] : 0;
+        var pluieJour = (donnees.daily.precipitation_probability_max && donnees.daily.precipitation_probability_max[i]) || 0;
+        var minJour = Math.round((donnees.daily.temperature_2m_min && donnees.daily.temperature_2m_min[i]) || 0);
+        var maxJour = Math.round((donnees.daily.temperature_2m_max && donnees.daily.temperature_2m_max[i]) || 0);
 
-      const ligne = document.createElement("div");
-      ligne.className = "jour-carte";
-      ligne.innerHTML =
-        '<div class="jour-nom">' + formaterJourCourt(dateIso, i) + '</div>' +
-        '<div class="jour-icone">' + obtenirIconeMeteo(codeJour) + '</div>' +
-        '<div class="jour-pluie">' + pluieJour + '%</div>' +
-        '<div class="jour-temp">' + maxJour + '° <span>/ ' + minJour + '°</span></div>';
+        var ligne = document.createElement("div");
+        ligne.className = "jour-carte";
+        ligne.innerHTML =
+          '<div class="jour-nom">' + formaterJourCourt(dateIso, i) + '</div>' +
+          '<div class="jour-icone">' + obtenirIconeMeteo(codeJour) + '</div>' +
+          '<div class="jour-pluie">' + pluieJour + '%</div>' +
+          '<div class="jour-temp">' + maxJour + '\u00b0 <span>/ ' + minJour + '\u00b0</span></div>';
 
-      conteneur7J.appendChild(ligne);
+        conteneur7J.appendChild(ligne);
+      }
+
+      if (elErreur) elErreur.style.display = "none";
+    } catch (e) {
+      if (elErreur) elErreur.style.display = "block";
     }
-
-    if (elErreur) elErreur.style.display = "none";
-  } catch (e) {
-    console.error("Erreur météo :", e);
-    if (elErreur) elErreur.style.display = "block";
-  }
+  });
 }
 majMeteo();
 setInterval(majMeteo, 10 * 60 * 1000);
@@ -468,24 +510,37 @@ function decoderTexteIcs(texte) {
     .replace(/\\,/g, ",")
     .replace(/\\;/g, ";")
     .replace(/\\\\/g, "\\")
-    .trim();
+    .replace(/^\s+|\s+$/g, "");
 }
 
 function analyserDateIcs(valeurBrute) {
   if (!valeurBrute) return null;
-  const propre = valeurBrute.split(":").pop().trim();
-  const matchDateHeure = propre.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?(Z)?$/);
+  var parties = valeurBrute.split(":");
+  var propre = parties[parties.length - 1].replace(/^\s+|\s+$/g, "");
+
+  var matchDateHeure = propre.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?(Z)?$/);
   if (matchDateHeure) {
-    const [, a, m, j, h, min, sec = "00", estUtc] = matchDateHeure;
+    var a = parseInt(matchDateHeure[1], 10);
+    var m = parseInt(matchDateHeure[2], 10);
+    var j = parseInt(matchDateHeure[3], 10);
+    var h = parseInt(matchDateHeure[4], 10);
+    var min = parseInt(matchDateHeure[5], 10);
+    var sec = matchDateHeure[6] ? parseInt(matchDateHeure[6], 10) : 0;
+    var estUtc = !!matchDateHeure[7];
     if (estUtc) {
-      return new Date(Date.UTC(Number(a), Number(m) - 1, Number(j), Number(h), Number(min), Number(sec)));
+      return new Date(Date.UTC(a, m - 1, j, h, min, sec));
     }
-    return new Date(Number(a), Number(m) - 1, Number(j), Number(h), Number(min), Number(sec));
+    return new Date(a, m - 1, j, h, min, sec);
   }
-  const matchJour = propre.match(/^(\d{4})(\d{2})(\d{2})$/);
+
+  var matchJour = propre.match(/^(\d{4})(\d{2})(\d{2})$/);
   if (matchJour) {
-    const [, a, m, j] = matchJour;
-    return new Date(Number(a), Number(m) - 1, Number(j), 0, 0, 0);
+    return new Date(
+      parseInt(matchJour[1], 10),
+      parseInt(matchJour[2], 10) - 1,
+      parseInt(matchJour[3], 10),
+      0, 0, 0
+    );
   }
   return null;
 }
@@ -493,57 +548,59 @@ function analyserDateIcs(valeurBrute) {
 function cleDateLocale(dateObj) {
   return (
     dateObj.getFullYear() + "-" +
-    String(dateObj.getMonth() + 1).padStart(2, "0") + "-" +
-    String(dateObj.getDate()).padStart(2, "0")
+    deuxChiffres(dateObj.getMonth() + 1) + "-" +
+    deuxChiffres(dateObj.getDate())
   );
 }
 
-/* Renvoie le lundi 00:00:00 de la semaine contenant `dateRef` */
 function obtenirLundiSemaine(dateRef) {
-  const d = new Date(dateRef.getFullYear(), dateRef.getMonth(), dateRef.getDate(), 0, 0, 0, 0);
-  const jourSemaine = d.getDay(); // 0 = Dimanche, 1 = Lundi, ..., 6 = Samedi
-  const decalageLundi = (jourSemaine + 6) % 7; // Lundi -> 0, Dimanche -> 6
+  var d = new Date(dateRef.getFullYear(), dateRef.getMonth(), dateRef.getDate(), 0, 0, 0, 0);
+  var jourSemaine = d.getDay();
+  var decalageLundi = (jourSemaine + 6) % 7;
   d.setDate(d.getDate() - decalageLundi);
   return d;
 }
 
 function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
-  const lignesDepliees = String(texteIcs || "")
+  var lignesDepliees = String(texteIcs || "")
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n")
     .replace(/\n[ \t]/g, "");
 
-  const blocs = lignesDepliees.split("BEGIN:VEVENT").slice(1);
-  const evenements = [];
+  var blocs = lignesDepliees.split("BEGIN:VEVENT");
+  var evenements = [];
 
-  for (const bloc of blocs) {
-    const finIndex = bloc.indexOf("END:VEVENT");
-    const contenu = finIndex !== -1 ? bloc.slice(0, finIndex) : bloc;
-    const lignes = contenu.split("\n");
+  for (var b = 1; b < blocs.length; b++) {
+    var bloc = blocs[b];
+    var finIndex = bloc.indexOf("END:VEVENT");
+    var contenu = finIndex !== -1 ? bloc.slice(0, finIndex) : bloc;
+    var lignes = contenu.split("\n");
 
-    let resume = "";
-    let dtstart = "";
+    var resume = "";
+    var dtstart = "";
 
-    for (const ligne of lignes) {
-      if (ligne.startsWith("SUMMARY")) {
-        const idx = ligne.indexOf(":");
-        if (idx !== -1) resume = decoderTexteIcs(ligne.slice(idx + 1));
-      } else if (ligne.startsWith("DTSTART")) {
-        const idx = ligne.indexOf(":");
-        if (idx !== -1) dtstart = ligne.slice(idx + 1).trim();
+    for (var l = 0; l < lignes.length; l++) {
+      var ligne = lignes[l];
+      if (ligne.indexOf("SUMMARY") === 0) {
+        var idx1 = ligne.indexOf(":");
+        if (idx1 !== -1) resume = decoderTexteIcs(ligne.slice(idx1 + 1));
+      } else if (ligne.indexOf("DTSTART") === 0) {
+        var idx2 = ligne.indexOf(":");
+        if (idx2 !== -1) dtstart = ligne.slice(idx2 + 1).replace(/^\s+|\s+$/g, "");
       }
     }
 
-    const dateObj = analyserDateIcs(dtstart);
+    var dateObj = analyserDateIcs(dtstart);
     if (dateObj && !isNaN(dateObj.getTime()) && resume) {
-      const jourEntier = /^\d{8}$/.test(dtstart.split(":").pop().trim());
+      var dParties = dtstart.split(":");
+      var dPropre = dParties[dParties.length - 1].replace(/^\s+|\s+$/g, "");
       evenements.push({
-        personne,
-        classeCouleur,
+        personne: personne,
+        classeCouleur: classeCouleur,
         titre: resume,
         date: dateObj,
         cleJour: cleDateLocale(dateObj),
-        jourEntier
+        jourEntier: /^\d{8}$/.test(dPropre)
       });
     }
   }
@@ -553,138 +610,155 @@ function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
 
 function formaterHeureCourte(dateObj, jourEntier) {
   if (jourEntier) return "";
-  const h = dateObj.getHours();
-  const min = dateObj.getMinutes();
+  var h = dateObj.getHours();
+  var min = dateObj.getMinutes();
   if (min === 0) return h + "h";
-  return h + "h" + String(min).padStart(2, "0");
+  return h + "h" + deuxChiffres(min);
 }
 
-async function recupererIcs(url) {
-  const baseRelais = (CONFIG.relaisAppsScript || "").trim();
+function recupererIcs(url, callback) {
+  var baseRelais = String(CONFIG.relaisAppsScript || "").replace(/^\s+|\s+$/g, "");
   if (!baseRelais) {
-    throw new Error("Aucun relais Apps Script configuré");
+    callback(new Error("Aucun relais Apps Script configur\u00e9"), null);
+    return;
   }
-  const sep = baseRelais.includes("?") ? "&" : "?";
-  const urlRelais = baseRelais + sep + "url=" + encodeURIComponent(url);
-  const reponse = await fetch(urlRelais);
-  if (!reponse.ok) {
-    throw new Error("HTTP " + reponse.status);
-  }
-  const texte = await reponse.text();
-  if (!texte.includes("BEGIN:VCALENDAR")) {
-    throw new Error("Réponse non-ICS reçue du relais");
-  }
-  return texte;
+  var sep = baseRelais.indexOf("?") !== -1 ? "&" : "?";
+  var urlRelais = baseRelais + sep + "url=" + encodeURIComponent(url);
+  requeteTexte(urlRelais, function (err, texte) {
+    if (err) {
+      callback(err, null);
+      return;
+    }
+    if (!texte || texte.indexOf("BEGIN:VCALENDAR") === -1) {
+      callback(new Error("R\u00e9ponse non-ICS re\u00e7ue du relais"), null);
+      return;
+    }
+    callback(null, texte);
+  });
 }
 
 function construireGrillePlanning(evenementsParJour, erreurs) {
-  const grille = document.getElementById("grille-4-semaines");
+  var statutEl = document.getElementById("statut-calendrier");
+  var grille = document.getElementById("grille-4-semaines");
+  statutEl.innerHTML = "";
   grille.innerHTML = "";
-  grille.style.gridTemplateRows = "repeat(" + CONFIG.nbSemainesPlanning + ", minmax(0, 1fr))";
 
   if (erreurs.length > 0) {
-    const bandeauErreur = document.createElement("div");
-    bandeauErreur.className = "cal-erreur";
-    bandeauErreur.textContent = "Certains calendriers n'ont pas pu être chargés : " + erreurs.join(" — ") + ".";
-    grille.appendChild(bandeauErreur);
+    statutEl.innerHTML =
+      '<div class="cal-erreur">Certains calendriers n\'ont pas pu \u00eatre charg\u00e9s : ' +
+      erreurs.join(" \u2014 ") +
+      ".</div>";
   }
 
-  const maintenant = new Date();
-  const cleAujourdhui = cleDateLocale(maintenant);
-  const debutAujourdhui = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate(), 0, 0, 0, 0);
-  const lundiDepart = obtenirLundiSemaine(maintenant);
-  const nbCases = CONFIG.nbSemainesPlanning * 7;
+  var maintenant = new Date();
+  var cleAujourdhui = cleDateLocale(maintenant);
+  var debutAujourdhui = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate(), 0, 0, 0, 0);
+  var lundiDepart = obtenirLundiSemaine(maintenant);
 
-  for (let i = 0; i < nbCases; i++) {
-    const dateCase = new Date(
-      lundiDepart.getFullYear(),
-      lundiDepart.getMonth(),
-      lundiDepart.getDate() + i,
-      0, 0, 0, 0
-    );
-    const cleCase = cleDateLocale(dateCase);
-    const estAujourdhui = cleCase === cleAujourdhui;
-    const estPasse = dateCase < debutAujourdhui;
+  for (var s = 0; s < CONFIG.nbSemainesPlanning; s++) {
+    var ligneSemaine = document.createElement("div");
+    ligneSemaine.className = "ligne-semaine";
 
-    const caseDiv = document.createElement("div");
-    caseDiv.className = "case-jour" + (estAujourdhui ? " aujourd-hui" : "") + (estPasse ? " jour-passe" : "");
+    for (var j = 0; j < 7; j++) {
+      var offsetJours = s * 7 + j;
+      var dateCase = new Date(
+        lundiDepart.getFullYear(),
+        lundiDepart.getMonth(),
+        lundiDepart.getDate() + offsetJours,
+        0, 0, 0, 0
+      );
+      var cleCase = cleDateLocale(dateCase);
+      var estAujourdhui = cleCase === cleAujourdhui;
+      var estPasse = dateCase < debutAujourdhui;
 
-    const moisCourt = dateCase.toLocaleDateString("fr-FR", { month: "short" }).replace(".", "");
+      var caseDiv = document.createElement("div");
+      caseDiv.className = "case-jour" + (estAujourdhui ? " aujourd-hui" : "") + (estPasse ? " jour-passe" : "");
 
-    const enteteJour = document.createElement("div");
-    enteteJour.className = "case-entete-jour";
-    enteteJour.innerHTML =
-      '<span class="numero-jour">' + dateCase.getDate() + '</span>' +
-      '<span class="mois-court">' + moisCourt + '</span>';
+      var moisCourt = MOIS_COURTS_FR[dateCase.getMonth()];
 
-    const listeEventsJour = document.createElement("div");
-    listeEventsJour.className = "case-evenements";
+      var enteteJour = document.createElement("div");
+      enteteJour.className = "case-entete-jour";
+      enteteJour.innerHTML =
+        '<span class="numero-jour">' + dateCase.getDate() + '</span>' +
+        '<span class="mois-court">' + moisCourt + '</span>';
 
-    const eventsDuJour = evenementsParJour.get(cleCase) || [];
-    for (const ev of eventsDuJour) {
-      const puce = document.createElement("div");
-      puce.className = "event-puce " + ev.classeCouleur;
-      const heureTexte = formaterHeureCourte(ev.date, ev.jourEntier);
-      const labelComplet = (heureTexte ? heureTexte + " " : "") + ev.titre;
-      puce.title = ev.personne + " — " + labelComplet;
-      puce.innerHTML =
-        (heureTexte ? '<span class="event-heure">' + heureTexte + '</span>' : '') +
-        '<span>' + ev.titre + '</span>';
-      listeEventsJour.appendChild(puce);
+      var listeEventsJour = document.createElement("div");
+      listeEventsJour.className = "case-evenements";
+
+      var eventsDuJour = evenementsParJour[cleCase] || [];
+      for (var e = 0; e < eventsDuJour.length; e++) {
+        var ev = eventsDuJour[e];
+        var puce = document.createElement("div");
+        puce.className = "event-puce " + ev.classeCouleur;
+        var heureTexte = formaterHeureCourte(ev.date, ev.jourEntier);
+        puce.innerHTML =
+          (heureTexte ? '<span class="event-heure">' + heureTexte + '</span>' : '') +
+          '<span>' + ev.titre + '</span>';
+        listeEventsJour.appendChild(puce);
+      }
+
+      caseDiv.appendChild(enteteJour);
+      caseDiv.appendChild(listeEventsJour);
+      ligneSemaine.appendChild(caseDiv);
     }
 
-    caseDiv.appendChild(enteteJour);
-    caseDiv.appendChild(listeEventsJour);
-    grille.appendChild(caseDiv);
+    grille.appendChild(ligneSemaine);
   }
 }
 
-async function majPlanning4Semaines() {
+function majPlanning4Semaines() {
   document.getElementById("legende-capucine").textContent = CONFIG.titreCal1;
   document.getElementById("legende-clemence").textContent = CONFIG.titreCal2;
 
-  const resultats = await Promise.allSettled([
-    recupererIcs(CONFIG.icsCal1),
-    recupererIcs(CONFIG.icsCal2)
-  ]);
+  var tousEvenements = [];
+  var erreurs = [];
+  var termines = 0;
 
-  let tousEvenements = [];
-  let erreurs = [];
+  function verifierFin() {
+    termines++;
+    if (termines < 2) return;
 
-  if (resultats[0].status === "fulfilled") {
-    tousEvenements = tousEvenements.concat(
-      extraireEvenementsIcs(resultats[0].value, CONFIG.titreCal1, "capucine")
-    );
-  } else {
-    const raison0 = resultats[0].reason?.message || String(resultats[0].reason);
-    console.error("Erreur calendrier Capucine :", resultats[0].reason);
-    erreurs.push(CONFIG.titreCal1 + " (" + raison0 + ")");
-  }
-
-  if (resultats[1].status === "fulfilled") {
-    tousEvenements = tousEvenements.concat(
-      extraireEvenementsIcs(resultats[1].value, CONFIG.titreCal2, "clemence")
-    );
-  } else {
-    const raison1 = resultats[1].reason?.message || String(resultats[1].reason);
-    console.error("Erreur calendrier Clémence :", resultats[1].reason);
-    erreurs.push(CONFIG.titreCal2 + " (" + raison1 + ")");
-  }
-
-  // Regroupe les événements par date (YYYY-MM-DD) et trie par heure
-  const evenementsParJour = new Map();
-  for (const ev of tousEvenements) {
-    if (!evenementsParJour.has(ev.cleJour)) {
-      evenementsParJour.set(ev.cleJour, []);
+    var evenementsParJour = {};
+    for (var i = 0; i < tousEvenements.length; i++) {
+      var ev = tousEvenements[i];
+      if (!evenementsParJour[ev.cleJour]) {
+        evenementsParJour[ev.cleJour] = [];
+      }
+      evenementsParJour[ev.cleJour].push(ev);
     }
-    evenementsParJour.get(ev.cleJour).push(ev);
+
+    for (var cle in evenementsParJour) {
+      if (evenementsParJour.hasOwnProperty(cle)) {
+        evenementsParJour[cle].sort(function (a, b) {
+          return a.date - b.date;
+        });
+      }
+    }
+
+    construireGrillePlanning(evenementsParJour, erreurs);
   }
 
-  for (const [, liste] of evenementsParJour) {
-    liste.sort((a, b) => a.date - b.date);
-  }
+  recupererIcs(CONFIG.icsCal1, function (err1, texte1) {
+    if (!err1 && texte1) {
+      tousEvenements = tousEvenements.concat(
+        extraireEvenementsIcs(texte1, CONFIG.titreCal1, "capucine")
+      );
+    } else {
+      erreurs.push(CONFIG.titreCal1 + " (" + (err1 && err1.message ? err1.message : "erreur") + ")");
+    }
+    verifierFin();
+  });
 
-  construireGrillePlanning(evenementsParJour, erreurs);
+  recupererIcs(CONFIG.icsCal2, function (err2, texte2) {
+    if (!err2 && texte2) {
+      tousEvenements = tousEvenements.concat(
+        extraireEvenementsIcs(texte2, CONFIG.titreCal2, "clemence")
+      );
+    } else {
+      erreurs.push(CONFIG.titreCal2 + " (" + (err2 && err2.message ? err2.message : "erreur") + ")");
+    }
+    verifierFin();
+  });
 }
 
 majPlanning4Semaines();
