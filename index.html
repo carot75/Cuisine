@@ -271,8 +271,6 @@
 <script>
 /* ============================================================
    CONFIGURATION : modifie uniquement cette section.
-   - Mets ici les liens publics iCloud en https://... (le lien webcal://
-     de partage iCloud où l'on remplace "webcal://" par "https://").
    ============================================================ */
 const CONFIG = {
   latitude: 48.862725,
@@ -282,12 +280,12 @@ const CONFIG = {
   nbJoursPrevision: 7,
   titreCal1: "Capucine",
   titreCal2: "Clémence",
-  // Liens directs iCloud (.ics en https) :
   icsCal1: "https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbKlOAruzpSD4rwFGhx9g5CtJkeQiQ5PJZbH5BHzM2D5WjW6oRPA5zSTZa1G3_2omP4",
   icsCal2: "https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbJpPwPEuos8HZDEWsf74oGRLyyWbpSACEUkaH8GxmwzZFotlQNxqhPjZeMRiizib-E",
-  // Nombre maximum d'événements à afficher (ex: 12)
+  // Optionnel : préfixe de relais CORS si l'accès direct est bloqué.
+  // Exemple : "https://corsproxy.io/?" ou "" pour désactiver le repli proxy.
+  proxyUrl: "https://corsproxy.io/?",
   maxEvenements: 12,
-  // N'afficher que les événements à partir d'aujourd'hui (true/false)
   uniquementAujourdhuiEtFutur: true
 };
 /* ================= FIN DE LA CONFIGURATION ================= */
@@ -317,7 +315,6 @@ function obtenirIconeMeteo(code) {
   return '<svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Météo"><path d="M18 44h29a11 11 0 0 0 1.5-21.9A14.5 14.5 0 0 0 21.2 19 10 10 0 0 0 18 44z" fill="#b8c4d0"/></svg>';
 }
 
-// 1. Horloge et date
 function majHorloge() {
   try {
     const maintenant = new Date();
@@ -351,7 +348,6 @@ function formaterJourCourt(dateIso, index) {
   return dateObj.toLocaleDateString("fr-FR", { weekday: "short" });
 }
 
-// 2. Météo actuelle + prévisions sur 7 jours
 async function majMeteo() {
   const elErreur = document.getElementById("erreur-meteo");
   try {
@@ -415,7 +411,6 @@ async function majMeteo() {
 majMeteo();
 setInterval(majMeteo, 10 * 60 * 1000);
 
-// 3. Calendriers fusionnés (Capucine en rose, Clémence en jaune)
 function decoderTexteIcs(texte) {
   return String(texte || "")
     .replace(/\\n/gi, " ")
@@ -427,7 +422,6 @@ function decoderTexteIcs(texte) {
 
 function analyserDateIcs(valeurBrute) {
   if (!valeurBrute) return null;
-  // Exemples : 20261122T143000Z ou 20261122T143000 ou 20261122
   const propre = valeurBrute.split(":").pop().trim();
   const matchDateHeure = propre.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?(Z)?$/);
   if (matchDateHeure) {
@@ -446,7 +440,6 @@ function analyserDateIcs(valeurBrute) {
 }
 
 function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
-  // Déplier les lignes coupées par un espace ou une tabulation (norme RFC 5545)
   const lignesDepliees = String(texteIcs || "")
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n")
@@ -499,9 +492,27 @@ function formaterDateEvenement(dateObj, jourEntier) {
 }
 
 async function recupererIcs(url) {
-  const reponse = await fetch(url);
-  if (!reponse.ok) throw new Error("HTTP " + reponse.status);
-  return await reponse.text();
+  // 1. Tentative d'accès direct
+  try {
+    const reponseDirecte = await fetch(url);
+    if (reponseDirecte.ok) {
+      return await reponseDirecte.text();
+    }
+  } catch (errDirect) {
+    console.warn("Accès direct bloqué ou indisponible, essai via relais :", errDirect);
+  }
+
+  // 2. Repli via relais/proxy si configuré
+  if (CONFIG.proxyUrl && CONFIG.proxyUrl.trim() !== "") {
+    const urlRelais = CONFIG.proxyUrl.trim() + encodeURIComponent(url);
+    const reponseRelais = await fetch(urlRelais);
+    if (!reponseRelais.ok) {
+      throw new Error("Relais HTTP " + reponseRelais.status);
+    }
+    return await reponseRelais.text();
+  }
+
+  throw new Error("Accès direct impossible et aucun proxy configuré");
 }
 
 async function majCalendriersFusionnes() {
@@ -549,8 +560,8 @@ async function majCalendriersFusionnes() {
   if (erreurs.length > 0 && aAfficher.length === 0) {
     conteneur.innerHTML =
       '<div class="cal-erreur">' +
-      'Impossible de lire directement les calendriers iCloud (' + erreurs.join(" & ") + ') depuis le navigateur ' +
-      '(restriction CORS / réseau). Si le blocage persiste, il faudra passer par un petit relais/proxy pour lire les liens .ics.' +
+      'Impossible de lire les calendriers iCloud (' + erreurs.join(" & ") + ') depuis le navigateur ' +
+      '(restriction CORS / réseau). Vérifie ta connexion ou la configuration de `proxyUrl`.' +
       '</div>';
     return;
   }
@@ -581,7 +592,6 @@ async function majCalendriersFusionnes() {
 majCalendriersFusionnes();
 setInterval(majCalendriersFusionnes, 15 * 60 * 1000);
 
-// Rafraîchissement complet toutes les 3 heures
 setTimeout(function () { location.reload(); }, 3 * 60 * 60 * 1000);
 </script>
 </body>
