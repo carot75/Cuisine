@@ -58,7 +58,7 @@
   }
   #meteo-desc { font-size: 1.15vw; color: #8b98a3; margin-top: 0.25vw; }
   #meteo-details { font-size: 0.9vw; color: #8b98a3; margin-top: 0.2vw; }
-  #erreur-meteo { font-size: 0.95vw; color: #e5533d; display: none; margin-top: 0.4vw; }
+  #erreur-meteo { font-size: 0.92vw; color: #e5533d; display: none; margin-top: 0.4vw; line-height: 1.35; }
 
   /* Prévisions sur 7 jours */
   #previsions-7j {
@@ -175,19 +175,17 @@
   }
 
   #statut-calendrier {
-    max-height: 4.2vw;
+    max-height: 4.5vw;
     overflow-y: auto;
     margin-bottom: 0.25vw;
   }
 
-  /* Conteneur de la grille positionné pour occuper l'espace restant sans déborder */
   #zone-grille {
     position: relative;
     width: 100%;
     height: 83%;
   }
 
-  /* Grille de 4 semaines à hauteur fixe par ligne */
   #grille-4-semaines {
     display: table;
     width: 100%;
@@ -274,11 +272,12 @@
   }
   .cal-erreur {
     color: #ff8a80;
-    font-size: 0.85vw;
+    font-size: 0.82vw;
     background: rgba(229, 83, 61, 0.14);
     border: 1px solid rgba(229, 83, 61, 0.4);
     padding: 0.35vw 0.6vw;
     border-radius: 0.4vw;
+    line-height: 1.25;
   }
 </style>
 </head>
@@ -295,7 +294,7 @@
         </div>
         <div id="meteo-desc"></div>
         <div id="meteo-details"></div>
-        <div id="erreur-meteo">M&eacute;t&eacute;o indisponible (connexion HTTPS refus&eacute;e ou r&eacute;seau)</div>
+        <div id="erreur-meteo">M&eacute;t&eacute;o indisponible</div>
       </div>
       <div id="previsions-7j"></div>
     </div>
@@ -356,7 +355,13 @@ var CONFIG = {
 };
 /* ================= FIN DE LA CONFIGURATION ================= */
 
+function extraireHote(url) {
+  var m = String(url || "").match(/^https?:\/\/([^\/?#]+)/i);
+  return m ? m[1] : url;
+}
+
 function requeteTexte(url, callback) {
+  var hote = extraireHote(url);
   try {
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
@@ -365,18 +370,18 @@ function requeteTexte(url, callback) {
         if (xhr.status >= 200 && xhr.status < 300) {
           callback(null, xhr.responseText);
         } else if (xhr.status === 0) {
-          callback(new Error("Connexion bloqu\u00e9e ou hors ligne (HTTP 0)"), null);
+          callback(new Error(hote + " : HTTP 0 (TLS/r\u00e9seau refus\u00e9)"), null);
         } else {
-          callback(new Error("HTTP " + xhr.status), null);
+          callback(new Error(hote + " : HTTP " + xhr.status), null);
         }
       }
     };
     xhr.onerror = function () {
-      callback(new Error("Erreur r\u00e9seau / TLS"), null);
+      callback(new Error(hote + " : erreur r\u00e9seau / TLS"), null);
     };
     xhr.send();
   } catch (err) {
-    callback(err, null);
+    callback(new Error(hote + " : " + (err && err.message ? err.message : "exception")), null);
   }
 }
 
@@ -466,7 +471,10 @@ function majMeteo() {
 
   requeteTexte(url, function (err, texte) {
     if (err || !texte) {
-      if (elErreur) elErreur.style.display = "block";
+      if (elErreur) {
+        elErreur.textContent = "M\u00e9t\u00e9o indisponible (" + (err && err.message ? err.message : "erreur") + ")";
+        elErreur.style.display = "block";
+      }
       return;
     }
     try {
@@ -646,7 +654,7 @@ function recupererIcs(url, callback) {
       return;
     }
     if (!texte || texte.indexOf("BEGIN:VCALENDAR") === -1) {
-      callback(new Error("R\u00e9ponse non-ICS re\u00e7ue du relais"), null);
+      callback(new Error(extraireHote(urlRelais) + " : r\u00e9ponse non-ICS"), null);
       return;
     }
     callback(null, texte);
@@ -662,7 +670,7 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
 
   if (erreurs.length > 0) {
     statutEl.innerHTML =
-      '<div class="cal-erreur">Certains calendriers n\'ont pas pu \u00eatre charg\u00e9s : ' +
+      '<div class="cal-erreur">Calendriers indisponibles : ' +
       erreurs.join(" \u2014 ") +
       ".</div>";
     zoneGrille.style.height = "75%";
