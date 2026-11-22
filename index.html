@@ -41,42 +41,42 @@
     display: flex;
     flex-direction: column;
   }
-  #colonne-gauche > div { padding: 3vw 2vw; }
-  #horloge { font-size: 8.5vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-  #date { font-size: 2vw; color: var(--muted); margin-top: 0.8vw; text-transform: capitalize; }
+  #colonne-gauche > div { padding: 2.2vw 2vw; }
+  #horloge { font-size: 7.5vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  #date { font-size: 1.8vw; color: var(--muted); margin-top: 0.6vw; text-transform: capitalize; }
 
   /* Météo actuelle */
-  #meteo { margin-top: 2.2vw; }
+  #meteo { margin-top: 1.6vw; }
   #meteo-ligne-principale {
     display: flex;
     align-items: center;
-    gap: 1.2vw;
+    gap: 1vw;
   }
   #meteo-icone .icone-svg {
-    width: 4.5vw;
-    height: 4.5vw;
+    width: 3.8vw;
+    height: 3.8vw;
     display: block;
   }
-  #meteo-temp { font-size: 4.2vw; font-weight: 300; line-height: 1.1; }
-  #meteo-desc { font-size: 1.6vw; color: var(--muted); margin-top: 0.5vw; }
-  #meteo-details { font-size: 1.25vw; color: var(--muted); margin-top: 0.4vw; }
-  #erreur-meteo { font-size: 1.3vw; color: #e5533d; display: none; margin-top: 0.8vw; }
+  #meteo-temp { font-size: 3.6vw; font-weight: 300; line-height: 1.1; }
+  #meteo-desc { font-size: 1.4vw; color: var(--muted); margin-top: 0.35vw; }
+  #meteo-details { font-size: 1.1vw; color: var(--muted); margin-top: 0.3vw; }
+  #erreur-meteo { font-size: 1.2vw; color: #e5533d; display: none; margin-top: 0.6vw; }
 
-  /* Prévisions sur 3 jours */
-  #previsions-3j {
-    margin-top: 2vw;
+  /* Prévisions sur 7 jours (format compact pour tenir sans débordement) */
+  #previsions-7j {
+    margin-top: 1.4vw;
     display: flex;
     flex-direction: column;
-    gap: 0.7vw;
+    gap: 0.42vw;
   }
   .jour-carte {
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: var(--card);
-    padding: 0.8vw 1.1vw;
-    border-radius: 0.8vw;
-    font-size: 1.3vw;
+    padding: 0.45vw 0.9vw;
+    border-radius: 0.65vw;
+    font-size: 1.1vw;
   }
   .jour-nom {
     width: 24%;
@@ -90,14 +90,14 @@
     justify-content: center;
   }
   .jour-icone .icone-svg {
-    width: 2.4vw;
-    height: 2.4vw;
+    width: 1.8vw;
+    height: 1.8vw;
     display: block;
   }
   .jour-pluie {
     color: #6ea8fe;
-    font-size: 1.15vw;
-    margin-right: 0.9vw;
+    font-size: 1vw;
+    margin-right: 0.7vw;
     white-space: nowrap;
   }
   .jour-temp {
@@ -133,7 +133,7 @@
         <div id="meteo-details"></div>
         <div id="erreur-meteo">Météo indisponible</div>
       </div>
-      <div id="previsions-3j"></div>
+      <div id="previsions-7j"></div>
     </div>
   </div>
 
@@ -159,7 +159,7 @@ const CONFIG = {
   longitude: 2.287592,
   ville: "Paris",
   fuseauHoraire: "Europe/Paris",
-  nbJoursPrevision: 3,
+  nbJoursPrevision: 7, // Nombre de jours affichés dans la liste (jusqu'à 7)
   titreCal1: "Capucine",
   titreCal2: "Clemence",
   urlCal1: "https://calendarplaceholder.com/generate?url=https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbKlOAruzpSD4rwFGhx9g5CtJkeQiQ5PJZbH5BHzM2D5WjW6oRPA5zSTZa1G3_2omP4",
@@ -256,108 +256,4 @@ function obtenirIconeMeteo(code) {
     return `
       <svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Orage">
         <path d="M18 34h29a10.5 10.5 0 0 0 1.4-20.9A14 14 0 0 0 21.5 11 9.5 9.5 0 0 0 18 34z" fill="#7d8d9e"/>
-        <polygon points="34,32 25,46 32,46 29,57 41,42 34,42" fill="#ffd43b"/>
-      </svg>`;
-  }
-
-  // Icône par défaut
-  return `
-    <svg class="icone-svg" viewBox="0 0 64 64" fill="none" aria-label="Météo">
-      <path d="M18 44h29a11 11 0 0 0 1.5-21.9A14.5 14.5 0 0 0 21.2 19 10 10 0 0 0 18 44z" fill="#b8c4d0"/>
-    </svg>`;
-}
-
-// Horloge et date
-function majHorloge() {
-  const maintenant = new Date();
-  document.getElementById("horloge").textContent =
-    String(maintenant.getHours()).padStart(2, "0") + ":" +
-    String(maintenant.getMinutes()).padStart(2, "0");
-  document.getElementById("date").textContent =
-    maintenant.toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    });
-}
-setInterval(majHorloge, 5000);
-majHorloge();
-
-// Transforme une date "AAAA-MM-JJ" en nom de jour court (ex: "lun.")
-function formaterJourCourt(dateIso, index) {
-  if (index === 0) return "Auj.";
-  const [annee, mois, jour] = dateIso.split("-").map(Number);
-  const dateObj = new Date(annee, mois - 1, jour);
-  return dateObj.toLocaleDateString("fr-FR", { weekday: "short" });
-}
-
-// Météo actuelle + prévisions sur 3 jours (API Open-Meteo)
-async function majMeteo() {
-  try {
-    const url =
-      "https://api.open-meteo.com/v1/forecast" +
-      "?latitude=" + encodeURIComponent(CONFIG.latitude) +
-      "&longitude=" + encodeURIComponent(CONFIG.longitude) +
-      "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m" +
-      "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
-      "&timezone=" + encodeURIComponent(CONFIG.fuseauHoraire);
-
-    const reponse = await fetch(url);
-    if (!reponse.ok) throw new Error("Réponse réseau invalide");
-    const donnees = await reponse.json();
-
-    // 1. Météo du jour
-    const codeActuel = donnees.current.weather_code;
-    document.getElementById("meteo-icone").innerHTML = obtenirIconeMeteo(codeActuel);
-    document.getElementById("meteo-temp").textContent =
-      Math.round(donnees.current.temperature_2m) + " °C";
-    document.getElementById("meteo-desc").textContent = CONFIG.ville;
-    document.getElementById("meteo-details").textContent =
-      "Min " + Math.round(donnees.daily.temperature_2m_min[0]) + "° / Max " +
-      Math.round(donnees.daily.temperature_2m_max[0]) + "° · Pluie " +
-      donnees.daily.precipitation_probability_max[0] + "% · Vent " +
-      Math.round(donnees.current.wind_speed_10m) + " km/h";
-
-    // 2. Prévisions sur 3 jours avec icônes
-    const conteneur3J = document.getElementById("previsions-3j");
-    conteneur3J.innerHTML = "";
-
-    const nbJours = Math.min(CONFIG.nbJoursPrevision, donnees.daily.time.length);
-    for (let i = 0; i < nbJours; i++) {
-      const dateIso = donnees.daily.time[i];
-      const codeJour = donnees.daily.weather_code[i];
-      const pluieJour = donnees.daily.precipitation_probability_max[i];
-      const minJour = Math.round(donnees.daily.temperature_2m_min[i]);
-      const maxJour = Math.round(donnees.daily.temperature_2m_max[i]);
-
-      const ligne = document.createElement("div");
-      ligne.className = "jour-carte";
-      ligne.innerHTML =
-        '<div class="jour-nom">' + formaterJourCourt(dateIso, i) + '</div>' +
-        '<div class="jour-icone">' + obtenirIconeMeteo(codeJour) + '</div>' +
-        '<div class="jour-pluie">' + pluieJour + '%</div>' +
-        '<div class="jour-temp">' + maxJour + '° <span>/ ' + minJour + '°</span></div>';
-
-      conteneur3J.appendChild(ligne);
-    }
-
-    document.getElementById("erreur-meteo").style.display = "none";
-  } catch (e) {
-    document.getElementById("erreur-meteo").style.display = "block";
-  }
-}
-majMeteo();
-setInterval(majMeteo, 10 * 60 * 1000);
-
-// Calendriers
-document.getElementById("titre-cal1").textContent = CONFIG.titreCal1;
-document.getElementById("titre-cal2").textContent = CONFIG.titreCal2;
-document.getElementById("iframe-cal1").src = CONFIG.urlCal1;
-document.getElementById("iframe-cal2").src = CONFIG.urlCal2;
-
-// Rafraîchissement complet toutes les 3 heures
-setTimeout(function () { location.reload(); }, 3 * 60 * 60 * 1000);
-</script>
-</body>
-</html>
+        <polygon points="34,32 25,46 32,46
