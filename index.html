@@ -196,7 +196,7 @@
   }
 
   .evenement-date {
-    min-width: 12vw;
+    min-width: 13vw;
     font-size: 1.15vw;
     color: var(--muted);
     white-space: nowrap;
@@ -282,9 +282,8 @@ const CONFIG = {
   titreCal2: "Clémence",
   icsCal1: "https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbKlOAruzpSD4rwFGhx9g5CtJkeQiQ5PJZbH5BHzM2D5WjW6oRPA5zSTZa1G3_2omP4",
   icsCal2: "https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbJpPwPEuos8HZDEWsf74oGRLyyWbpSACEUkaH8GxmwzZFotlQNxqhPjZeMRiizib-E",
-  // Colle ici l'URL de ton application web Google Apps Script (se termine par /exec) :
   relaisAppsScript: "https://script.google.com/macros/s/AKfycbypC4mEbYdl_LQsuVWzrJJtYJp7j8x_VofokPjfm49EIOkViEQQQ5WaxT59CR0XiFNbuA/exec",
-  maxEvenements: 12,
+  maxEvenements: 15,
   uniquementAujourdhuiEtFutur: true
 };
 /* ================= FIN DE LA CONFIGURATION ================= */
@@ -491,29 +490,27 @@ function formaterDateEvenement(dateObj, jourEntier) {
 }
 
 async function recupererIcs(url) {
-  if (CONFIG.relaisAppsScript && CONFIG.relaisAppsScript.trim() !== "") {
-    const sep = CONFIG.relaisAppsScript.includes("?") ? "&" : "?";
-    const urlRelais = CONFIG.relaisAppsScript.trim() + sep + "url=" + encodeURIComponent(url);
-    const reponse = await fetch(urlRelais);
-    if (!reponse.ok) throw new Error("Relais HTTP " + reponse.status);
-    return await reponse.text();
+  const baseRelais = (CONFIG.relaisAppsScript || "").trim();
+  if (!baseRelais) {
+    throw new Error("Aucun relais Apps Script configuré");
   }
-  throw new Error("Aucun relais Apps Script configuré");
+  const sep = baseRelais.includes("?") ? "&" : "?";
+  const urlRelais = baseRelais + sep + "url=" + encodeURIComponent(url);
+  const reponse = await fetch(urlRelais);
+  if (!reponse.ok) {
+    throw new Error("HTTP " + reponse.status);
+  }
+  const texte = await reponse.text();
+  if (!texte.includes("BEGIN:VCALENDAR")) {
+    throw new Error("Réponse non-ICS reçue du relais");
+  }
+  return texte;
 }
 
 async function majCalendriersFusionnes() {
   const conteneur = document.getElementById("liste-evenements");
   document.getElementById("legende-capucine").textContent = CONFIG.titreCal1;
   document.getElementById("legende-clemence").textContent = CONFIG.titreCal2;
-
-  if (!CONFIG.relaisAppsScript || CONFIG.relaisAppsScript.trim() === "") {
-    conteneur.innerHTML =
-      '<div class="cal-erreur">' +
-      'Pour contourner le blocage d\'iCloud dans le navigateur, configure <strong>CONFIG.relaisAppsScript</strong> ' +
-      'avec l\'URL de ton petit script Google Apps Script (voir les étapes ci-dessous).' +
-      '</div>';
-    return;
-  }
 
   const resultats = await Promise.allSettled([
     recupererIcs(CONFIG.icsCal1),
@@ -528,8 +525,9 @@ async function majCalendriersFusionnes() {
       extraireEvenementsIcs(resultats[0].value, CONFIG.titreCal1, "capucine")
     );
   } else {
+    const raison0 = resultats[0].reason?.message || String(resultats[0].reason);
     console.error("Erreur calendrier Capucine :", resultats[0].reason);
-    erreurs.push(CONFIG.titreCal1);
+    erreurs.push(CONFIG.titreCal1 + " (" + raison0 + ")");
   }
 
   if (resultats[1].status === "fulfilled") {
@@ -537,8 +535,9 @@ async function majCalendriersFusionnes() {
       extraireEvenementsIcs(resultats[1].value, CONFIG.titreCal2, "clemence")
     );
   } else {
+    const raison1 = resultats[1].reason?.message || String(resultats[1].reason);
     console.error("Erreur calendrier Clémence :", resultats[1].reason);
-    erreurs.push(CONFIG.titreCal2);
+    erreurs.push(CONFIG.titreCal2 + " (" + raison1 + ")");
   }
 
   if (CONFIG.uniquementAujourdhuiEtFutur) {
@@ -555,7 +554,7 @@ async function majCalendriersFusionnes() {
   if (erreurs.length > 0 && aAfficher.length === 0) {
     conteneur.innerHTML =
       '<div class="cal-erreur">' +
-      'Erreur lors de la lecture via le relais pour : ' + erreurs.join(" & ") + '. Vérifie l\'URL de ton script Apps Script.' +
+      'Problème avec le relais Apps Script : ' + erreurs.join(" — ") + '.' +
       '</div>';
     return;
   }
@@ -563,7 +562,7 @@ async function majCalendriersFusionnes() {
   if (erreurs.length > 0) {
     const bandeauErreur = document.createElement("div");
     bandeauErreur.className = "cal-erreur";
-    bandeauErreur.textContent = "Certains événements n'ont pas pu être chargés pour : " + erreurs.join(", ") + ".";
+    bandeauErreur.textContent = "Certains calendriers n'ont pas pu être chargés : " + erreurs.join(" — ") + ".";
     conteneur.appendChild(bandeauErreur);
   }
 
