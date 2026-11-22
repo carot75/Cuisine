@@ -339,7 +339,8 @@ var CONFIG = {
   fuseauHoraire: "Europe/Paris",
   nbJoursPrevision: 7,
   nbSemainesPlanning: 3,
-  maxJoursEvenement: 31, /* Sécurité anti-boucle si un événement a une durée anormale */
+  maxJoursEvenement: 31,
+  maxOccurrencesRecurrence: 250, /* Sécurité anti-boucle sur les événements récurrents */
   titreCal1: "Capucine",
   titreCal2: "Cl\u00e9mence",
   icsCal1: "https://p180-caldav.icloud.com/published/2/MTY3ODE3OTc4MTY3ODE3OcSzQ1xoXu_TrZUd5MTOLbKlOAruzpSD4rwFGhx9g5CtJkeQiQ5PJZbH5BHzM2D5WjW6oRPA5zSTZa1G3_2omP4",
@@ -417,6 +418,16 @@ var MOIS_COURTS_FR = [
   "janv.", "f\u00e9vr.", "mars", "avr.", "mai", "juin",
   "juil.", "ao\u00fbt", "sept.", "oct.", "nov.", "d\u00e9c."
 ];
+
+var CODES_JOUR_ICS = {
+  SU: 0,
+  MO: 1,
+  TU: 2,
+  WE: 3,
+  TH: 4,
+  FR: 5,
+  SA: 6
+};
 
 function majHorloge() {
   try {
@@ -530,7 +541,6 @@ function decoderTexteIcs(texte) {
     .replace(/^\s+|\s+$/g, "");
 }
 
-/* Convertit une date ICS (YYYYMMDD ou YYYYMMDDTHHMMSS[Z]) en objet Date */
 function analyserDateIcs(valeurBrute) {
   if (!valeurBrute) return null;
   var parties = valeurBrute.split(":");
@@ -563,7 +573,6 @@ function analyserDateIcs(valeurBrute) {
   return null;
 }
 
-/* Ajoute une durée ICS (ex. P2D ou PT3H) à une date de début */
 function ajouterDureeIcs(dateDebut, dureeBrute) {
   if (!dateDebut || !dureeBrute) return null;
   var propre = dureeBrute.replace(/^\s+|\s+$/g, "");
@@ -601,7 +610,192 @@ function obtenirLundiSemaine(dateRef) {
   return d;
 }
 
-/* Calcule toutes les clés de jours (AAAA-MM-JJ) couvertes par un événement */
+/* Borne supérieure de la fenêtre d'affichage (fin des N semaines affichées) */
+function obtenirFinFenetreAffichage() {
+  var maintenant = new Date();
+  var lundiDepart = obtenirLundiSemaine(maintenant);
+  var nbSemaines = Math.max(1, parseInt(CONFIG.nbSemainesPlanning, 10) || 3);
+  return new Date(
+    lundiDepart.getFullYear(),
+    lundiDepart.getMonth(),
+    lundiDepart.getDate() + nbSemaines * 7,
+    23, 59, 59, 999
+  );
+}
+
+/* Transforme une chaîne RRULE (ex. FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE) en objet lisible */
+function analyserRegleRecurrence(rruleBrute) {
+  if (!rruleBrute) return null;
+  var regle = {
+    freq: "",
+    interval: 1,
+    count: null,
+    until: null,
+    byday: []
+  };
+  var parts = String(rruleBrute).split(";");
+  for (var i = 0; i < parts.length; i++) {
+    var kv = parts[i].split("=");
+    if (kv.length !== 2) continue;
+    var cle = kv[0].toUpperCase();
+    var val = kv[1].toUpperCase();
+
+    if (cle === "FREQ") {
+      regle.freq = val;
+    } else if (cle === "INTERVAL") {
+      var iv = parseInt(val, 10);
+      if (!isNaN(iv) && iv > 0) regle.interval = iv;
+    } else if (cle === "COUNT") {
+      var ct = parseInt(val, 10);
+      if (!isNaN(ct) && ct > 0) regle.count = ct;
+    } else if (cle === "UNTIL") {
+      regle.until = analyserDateIcs(val);
+    } else if (cle === "BYDAY") {
+      var joursList = val.split(",");
+      for (var j = 0; j < joursList.length; j++) {
+        var codeJour = joursList[j].replace(/^[+-]?\d+/, "");
+        if (CODES_JOUR_ICS.hasOwnProperty(codeJour)) {
+          regle.byday.push(CODES_JOUR_ICS[codeJour]);
+        }
+      }
+    }
+  }
+  return regle.freq ? regle : null;
+}
+
+/* Génère les dates de début des occurrences d'un événement (avec ou sans RRULE) */
+function genererDatesOccurrences(dateDebut, rruleBrute, exdates) {
+  var regle = analyserRegleRecurrence(rruleBrute);
+  if (!regle) {
+    return [dateDebut];
+  }
+
+  var finAffichage = obtenirFinFenetreAffichage();
+  var dateLimite = finAffichage;
+  if (regle.until && !isNaN(regle.until.getTime()) && regle.until.getTime() < dateLimite.getTime()) {
+    dateLimite = regle.until;
+  }
+
+  var exclusions = {};
+  if (exdates && exdates.length) {
+    for (var x = 0; x < exdates.length; x++) {
+      var dEx = analyserDateIcs(exdates[x]);
+      if (dEx && !isNaN(dEx.getTime())) {
+        exclusions[cleDateLocale(dEx)] = true;
+      }
+    }
+  }
+
+  var occurrences = [];
+  var heure = dateDebut.getHours();
+  var minute = dateDebut.getMinutes();
+  var seconde = dateDebut.getSeconds();
+  var totalEvaluations = 0;
+  var garde = 0;
+
+  function ajouterSiValide(candidat) {
+    if (candidat.getTime() < dateDebut.getTime()) return;
+    totalEvaluations++;
+    if (regle.count && totalEvaluations > regle.count) return;
+    if (candidat.getTime() > dateLimite.getTime()) return;
+    if (!exclusions[cleDateLocale(candidat)]) {
+      occurrences.push(candidat);
+    }
+  }
+
+  if (regle.freq === "DAILY") {
+    var idxJour = 0;
+    while (garde < CONFIG.maxOccurrencesRecurrence) {
+      var dDaily = new Date(
+        dateDebut.getFullYear(),
+        dateDebut.getMonth(),
+        dateDebut.getDate() + idxJour * regle.interval,
+        heure, minute, seconde
+      );
+      if (dDaily.getTime() > dateLimite.getTime()) break;
+      if (regle.count && totalEvaluations >= regle.count) break;
+      ajouterSiValide(dDaily);
+      idxJour++;
+      garde++;
+    }
+    return occurrences;
+  }
+
+  if (regle.freq === "WEEKLY") {
+    var joursCibles = regle.byday.length > 0 ? regle.byday : [dateDebut.getDay()];
+    var lundiBase = obtenirLundiSemaine(dateDebut);
+    var idxSemaine = 0;
+
+    while (garde < CONFIG.maxOccurrencesRecurrence) {
+      var lundiCourant = new Date(
+        lundiBase.getFullYear(),
+        lundiBase.getMonth(),
+        lundiBase.getDate() + idxSemaine * 7 * regle.interval,
+        0, 0, 0
+      );
+      if (lundiCourant.getTime() > dateLimite.getTime()) break;
+      if (regle.count && totalEvaluations >= regle.count) break;
+
+      for (var k = 0; k < joursCibles.length; k++) {
+        /* lundiCourant est un lundi (jour 1). Décalage depuis lundi : (jourCible + 6) % 7 */
+        var decalageJour = (joursCibles[k] + 6) % 7;
+        var dHebdo = new Date(
+          lundiCourant.getFullYear(),
+          lundiCourant.getMonth(),
+          lundiCourant.getDate() + decalageJour,
+          heure, minute, seconde
+        );
+        if (dHebdo.getTime() > dateLimite.getTime()) continue;
+        if (regle.count && totalEvaluations >= regle.count) break;
+        ajouterSiValide(dHebdo);
+      }
+
+      idxSemaine++;
+      garde++;
+    }
+    return occurrences;
+  }
+
+  if (regle.freq === "MONTHLY") {
+    var idxMois = 0;
+    var jourDuMois = dateDebut.getDate();
+    while (garde < CONFIG.maxOccurrencesRecurrence) {
+      var dMensuel = new Date(
+        dateDebut.getFullYear(),
+        dateDebut.getMonth() + idxMois * regle.interval,
+        jourDuMois,
+        heure, minute, seconde
+      );
+      if (dMensuel.getTime() > dateLimite.getTime()) break;
+      if (regle.count && totalEvaluations >= regle.count) break;
+      ajouterSiValide(dMensuel);
+      idxMois++;
+      garde++;
+    }
+    return occurrences;
+  }
+
+  if (regle.freq === "YEARLY") {
+    var idxAn = 0;
+    while (garde < CONFIG.maxOccurrencesRecurrence) {
+      var dAnnuel = new Date(
+        dateDebut.getFullYear() + idxAn * regle.interval,
+        dateDebut.getMonth(),
+        dateDebut.getDate(),
+        heure, minute, seconde
+      );
+      if (dAnnuel.getTime() > dateLimite.getTime()) break;
+      if (regle.count && totalEvaluations >= regle.count) break;
+      ajouterSiValide(dAnnuel);
+      idxAn++;
+      garde++;
+    }
+    return occurrences;
+  }
+
+  return [dateDebut];
+}
+
 function obtenirJoursCouverts(dateDebut, dateFin, jourEntier) {
   var jours = [];
   var jourCourant = debutJourLocal(dateDebut);
@@ -609,10 +803,8 @@ function obtenirJoursCouverts(dateDebut, dateFin, jourEntier) {
 
   if (dateFin && !isNaN(dateFin.getTime()) && dateFin.getTime() > dateDebut.getTime()) {
     if (jourEntier) {
-      /* Dans ICS, DTEND d'un événement journée entière est exclusif : on s'arrête la veille */
       dernierJour = new Date(dateFin.getFullYear(), dateFin.getMonth(), dateFin.getDate() - 1, 0, 0, 0, 0);
     } else {
-      /* Si l'événement finit exactement à 00:00:00, il ne couvre pas ce jour-là */
       var estMinuitPile =
         dateFin.getHours() === 0 &&
         dateFin.getMinutes() === 0 &&
@@ -656,6 +848,8 @@ function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
     var dtstart = "";
     var dtend = "";
     var duration = "";
+    var rrule = "";
+    var exdates = [];
 
     for (var l = 0; l < lignes.length; l++) {
       var ligne = lignes[l];
@@ -671,28 +865,51 @@ function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
       } else if (ligne.indexOf("DURATION") === 0) {
         var idx4 = ligne.indexOf(":");
         if (idx4 !== -1) duration = ligne.slice(idx4 + 1).replace(/^\s+|\s+$/g, "");
+      } else if (ligne.indexOf("RRULE") === 0) {
+        var idx5 = ligne.indexOf(":");
+        if (idx5 !== -1) rrule = ligne.slice(idx5 + 1).replace(/^\s+|\s+$/g, "");
+      } else if (ligne.indexOf("EXDATE") === 0) {
+        var idx6 = ligne.indexOf(":");
+        if (idx6 !== -1) {
+          var listeEx = ligne.slice(idx6 + 1).split(",");
+          for (var eIdx = 0; eIdx < listeEx.length; eIdx++) {
+            if (listeEx[eIdx]) exdates.push(listeEx[eIdx].replace(/^\s+|\s+$/g, ""));
+          }
+        }
       }
     }
 
-    var dateDebut = analyserDateIcs(dtstart);
-    if (dateDebut && !isNaN(dateDebut.getTime()) && resume) {
-      var dateFin = dtend ? analyserDateIcs(dtend) : ajouterDureeIcs(dateDebut, duration);
+    var dateDebutInitiale = analyserDateIcs(dtstart);
+    if (dateDebutInitiale && !isNaN(dateDebutInitiale.getTime()) && resume) {
+      var dateFinInitiale = dtend ? analyserDateIcs(dtend) : ajouterDureeIcs(dateDebutInitiale, duration);
+      var dureeMs =
+        dateFinInitiale && !isNaN(dateFinInitiale.getTime()) && dateFinInitiale.getTime() > dateDebutInitiale.getTime()
+          ? dateFinInitiale.getTime() - dateDebutInitiale.getTime()
+          : 0;
+
       var dParties = dtstart.split(":");
       var dPropre = dParties[dParties.length - 1].replace(/^\s+|\s+$/g, "");
       var estJourEntier = /^\d{8}$/.test(dPropre);
-      var joursCouverts = obtenirJoursCouverts(dateDebut, dateFin, estJourEntier);
 
-      for (var k = 0; k < joursCouverts.length; k++) {
-        var cleJour = joursCouverts[k];
-        var estPremierJour = (k === 0);
-        evenements.push({
-          personne: personne,
-          classeCouleur: classeCouleur,
-          titre: resume,
-          date: dateDebut,
-          cleJour: cleJour,
-          jourEntier: estJourEntier || !estPremierJour
-        });
+      var datesOccurrences = genererDatesOccurrences(dateDebutInitiale, rrule, exdates);
+
+      for (var o = 0; o < datesOccurrences.length; o++) {
+        var occDebut = datesOccurrences[o];
+        var occFin = dureeMs > 0 ? new Date(occDebut.getTime() + dureeMs) : null;
+        var joursCouverts = obtenirJoursCouverts(occDebut, occFin, estJourEntier);
+
+        for (var k = 0; k < joursCouverts.length; k++) {
+          var cleJour = joursCouverts[k];
+          var estPremierJour = (k === 0);
+          evenements.push({
+            personne: personne,
+            classeCouleur: classeCouleur,
+            titre: resume,
+            date: occDebut,
+            cleJour: cleJour,
+            jourEntier: estJourEntier || !estPremierJour
+          });
+        }
       }
     }
   }
