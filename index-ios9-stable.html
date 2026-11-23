@@ -15,113 +15,114 @@
     font-family: Helvetica, Arial, sans-serif;
     overflow: hidden;
     position: relative;
+    -webkit-text-size-adjust: 100%;
   }
 
-  /* Colonne gauche : horloge, date, météo et événements du jour */
+  /* Colonne gauche : 37 % de largeur */
   #colonne-gauche {
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
-    width: 34%;
+    width: 37%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Colonne droite : planning sur 3 semaines */
+  /* Colonne droite : 63 % de largeur */
   #colonne-droite {
     position: absolute;
     top: 0;
     bottom: 0;
     right: 0;
-    width: 66%;
+    width: 63%;
   }
 
-  #colonne-gauche > div { padding: 1.5vw; }
-  #horloge { font-size: 5.8vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-  #date { font-size: 1.4vw; color: #8b98a3; margin-top: 0.4vw; text-transform: capitalize; }
+  #colonne-gauche > div { padding: 12px 14px; }
+  #horloge { font-size: 66px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  #date { font-size: 18px; color: #8b98a3; margin-top: 4px; text-transform: capitalize; }
 
   /* Bloc météo actuelle */
-  #meteo { margin-top: 1.1vw; }
+  #meteo { margin-top: 10px; }
   #meteo-ligne-principale { display: table; }
   #meteo-icone {
     display: table-cell;
     vertical-align: middle;
-    padding-right: 0.8vw;
+    padding-right: 10px;
   }
   #meteo-icone .icone-svg {
-    width: 3.1vw;
-    height: 3.1vw;
+    width: 38px;
+    height: 38px;
     display: block;
   }
   #meteo-temp {
     display: table-cell;
     vertical-align: middle;
-    font-size: 2.9vw;
+    font-size: 36px;
     font-weight: 300;
-    line-height: 1.1;
+    line-height: 1.05;
   }
-  #meteo-desc { font-size: 1.15vw; color: #8b98a3; margin-top: 0.25vw; }
-  #meteo-details { font-size: 0.9vw; color: #8b98a3; margin-top: 0.2vw; }
-  #erreur-meteo { font-size: 0.92vw; color: #e5533d; display: none; margin-top: 0.4vw; line-height: 1.35; }
+  #meteo-desc { font-size: 16px; color: #8b98a3; margin-top: 2px; }
+  #meteo-details { font-size: 13px; color: #8b98a3; margin-top: 2px; }
+  #erreur-meteo { font-size: 13px; color: #e5533d; display: none; margin-top: 4px; line-height: 1.3; }
 
-  /* Évolution météo heure par heure : 8 prochaines heures sans défilement */
+  /* Évolution météo heure par heure : 8 colonnes sans défilement */
   #meteo-horaire {
     display: table;
     width: 100%;
     table-layout: fixed;
     border-collapse: separate;
-    border-spacing: 0.22vw 0;
-    margin-top: 0.85vw;
+    border-spacing: 2px 0;
+    margin-top: 8px;
     background: #181f26;
-    border-radius: 0.5vw;
-    padding: 0.4vw 0.25vw;
+    border-radius: 6px;
+    padding: 4px 2px;
     overflow: hidden;
   }
   .heure-carte {
     display: table-cell;
     vertical-align: top;
     text-align: center;
-    padding: 0.25vw 0.1vw;
-    border-radius: 0.38vw;
+    padding: 3px 1px;
+    border-radius: 4px;
     background: #202933;
   }
   .heure-libelle {
-    font-size: 0.78vw;
+    font-size: 12px;
     color: #8b98a3;
-    font-weight: 600;
+    font-weight: 700;
   }
   .heure-icone {
-    margin: 0.18vw 0;
+    margin: 2px 0;
   }
   .heure-icone .icone-svg {
-    width: 1.35vw;
-    height: 1.35vw;
+    width: 18px;
+    height: 18px;
     display: inline-block;
     vertical-align: middle;
   }
   .heure-temp {
-    font-size: 0.84vw;
+    font-size: 13px;
     font-weight: 700;
     color: #f4f6f8;
   }
   .heure-pluie {
-    font-size: 0.72vw;
+    font-size: 11px;
     color: #6ea8fe;
-    margin-top: 0.1vw;
+    margin-top: 1px;
   }
 
   /* Prévisions sur 7 jours */
-  #previsions-7j { margin-top: 0.85vw; }
+  #previsions-7j { margin-top: 8px; }
   .jour-carte {
     display: table;
     width: 100%;
     table-layout: fixed;
     background: #181f26;
-    padding: 0.34vw 0.65vw;
-    border-radius: 0.5vw;
-    font-size: 0.9vw;
-    margin-bottom: 0.3vw;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 3px;
   }
   .jour-nom {
     display: table-cell;
@@ -136,8 +137,8 @@
     text-align: center;
   }
   .jour-icone .icone-svg {
-    width: 1.4vw;
-    height: 1.4vw;
+    width: 19px;
+    height: 19px;
     display: inline-block;
     vertical-align: middle;
   }
@@ -146,37 +147,37 @@
     vertical-align: middle;
     text-align: right;
     color: #6ea8fe;
-    font-size: 0.84vw;
-    padding-right: 0.5vw;
+    font-size: 13px;
+    padding-right: 6px;
   }
   .jour-temp {
     display: table-cell;
     vertical-align: middle;
     text-align: right;
-    font-weight: 600;
+    font-weight: 700;
   }
   .jour-temp span { color: #8b98a3; font-weight: 400; }
 
   /* Section des événements du jour sous les prévisions 7 jours */
   #evenements-du-jour {
-    margin-top: 0.9vw;
+    margin-top: 8px;
     background: #181f26;
-    border-radius: 0.5vw;
-    padding: 0.6vw 0.7vw;
+    border-radius: 6px;
+    padding: 7px 9px;
   }
   .events-jour-titre-section {
-    font-size: 0.98vw;
+    font-size: 15px;
     font-weight: 700;
     color: #f4f6f8;
-    margin-bottom: 0.42vw;
+    margin-bottom: 5px;
   }
   .carte-event-jour {
     background: #202933;
-    border-left: 0.25vw solid #6ea8fe;
-    border-radius: 0.35vw;
-    padding: 0.34vw 0.5vw;
-    margin-bottom: 0.32vw;
-    font-size: 0.86vw;
+    border-left: 3px solid #6ea8fe;
+    border-radius: 4px;
+    padding: 4px 6px;
+    margin-bottom: 4px;
+    font-size: 13px;
     line-height: 1.25;
     white-space: normal;
     word-wrap: break-word;
@@ -193,59 +194,59 @@
     color: #fff0b3;
   }
   .event-jour-meta {
-    font-size: 0.78vw;
+    font-size: 12px;
     font-weight: 700;
     color: #cfd8e3;
-    margin-right: 0.35vw;
+    margin-right: 4px;
   }
   .aucun-event-jour {
-    font-size: 0.84vw;
+    font-size: 13px;
     color: #8b98a3;
-    padding: 0.2vw 0;
+    padding: 2px 0;
   }
 
   /* Bloc planning 3 semaines x 7 jours */
   #pile {
     position: absolute;
-    top: 1vw;
-    right: 1.1vw;
-    bottom: 1vw;
-    left: 0.4vw;
+    top: 10px;
+    right: 10px;
+    bottom: 10px;
+    left: 2px;
   }
   .cal-bloc-unique {
     position: relative;
     width: 100%;
     height: 100%;
     background: #181f26;
-    border-radius: 0.9vw;
-    padding: 1vw 1.1vw;
+    border-radius: 10px;
+    padding: 10px 12px;
   }
   .cal-entete {
-    margin-bottom: 0.55vw;
+    margin-bottom: 6px;
     overflow: hidden;
   }
   .cal-titre-principal {
     float: left;
-    font-size: 1.65vw;
+    font-size: 20px;
     font-weight: 700;
   }
   .legende {
     float: right;
-    font-size: 1.1vw;
-    margin-top: 0.2vw;
+    font-size: 15px;
+    margin-top: 2px;
   }
   .legende-item {
     display: inline-block;
-    margin-left: 1.1vw;
+    margin-left: 12px;
     font-weight: 600;
   }
   .pastille {
-    width: 0.85vw;
-    height: 0.85vw;
+    width: 11px;
+    height: 11px;
     border-radius: 50%;
     display: inline-block;
     vertical-align: middle;
-    margin-right: 0.35vw;
+    margin-right: 4px;
   }
   .pastille-capucine { background: #ff69b4; }
   .pastille-clemence { background: #ffd43b; }
@@ -255,29 +256,29 @@
     display: table;
     width: 100%;
     table-layout: fixed;
-    margin-bottom: 0.3vw;
+    margin-bottom: 4px;
   }
   .jour-semaine-label {
     display: table-cell;
     text-align: center;
-    font-size: 1.05vw;
+    font-size: 14px;
     font-weight: 700;
     color: #8b98a3;
     text-transform: uppercase;
-    padding: 0.15vw 0;
+    padding: 2px 0;
   }
 
   #statut-calendrier {
-    max-height: 4.5vw;
+    max-height: 45px;
     overflow-y: auto;
-    margin-bottom: 0.25vw;
+    margin-bottom: 3px;
   }
 
-  /* Hauteur explicite en vh pour éviter le bug height: 100% dans display: table sur Safari iOS 9 */
+  /* Hauteur explicite en vh compatible Safari iOS 9 */
   #zone-grille {
     position: relative;
     width: 100%;
-    height: 78vh;
+    height: 75vh;
   }
 
   #grille-4-semaines {
@@ -286,11 +287,11 @@
     height: 100%;
     table-layout: fixed;
     border-collapse: separate;
-    border-spacing: 0.36vw;
+    border-spacing: 4px;
   }
   .ligne-semaine {
     display: table-row;
-    height: 25vh;
+    height: 24vh;
   }
   .case-jour {
     display: table-cell;
@@ -298,8 +299,8 @@
     width: 14.2857%;
     background: #202933;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 0.5vw;
-    padding: 0.32vw 0.4vw;
+    border-radius: 6px;
+    padding: 4px 5px;
     overflow: hidden;
   }
   .case-jour.aujourd-hui {
@@ -309,10 +310,10 @@
   .case-jour.jour-passe { opacity: 0.65; }
   .case-entete-jour {
     overflow: hidden;
-    font-size: 0.95vw;
+    font-size: 14px;
     color: #8b98a3;
     line-height: 1.15;
-    margin-bottom: 0.22vw;
+    margin-bottom: 3px;
   }
   .numero-jour {
     float: left;
@@ -322,31 +323,31 @@
   .case-jour.aujourd-hui .numero-jour {
     background: #6ea8fe;
     color: #101418;
-    padding: 0.06vw 0.34vw;
-    border-radius: 0.28vw;
+    padding: 1px 5px;
+    border-radius: 4px;
   }
   .mois-court {
     float: right;
-    font-size: 0.8vw;
+    font-size: 12px;
     color: #8b98a3;
     text-transform: capitalize;
   }
   .case-evenements {
-    height: 19vh;
+    height: 18.5vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Retour à la ligne automatique pour afficher le détail des RDV en entier */
+  /* Puces d'événements agrandies */
   .event-puce {
-    font-size: 0.82vw;
+    font-size: 13px;
     line-height: 1.22;
-    padding: 0.18vw 0.32vw;
-    border-radius: 0.28vw;
-    border-left: 0.24vw solid transparent;
+    padding: 2px 4px;
+    border-radius: 4px;
+    border-left: 3px solid transparent;
     white-space: normal;
     word-wrap: break-word;
-    margin-bottom: 0.18vw;
+    margin-bottom: 3px;
   }
   .event-puce.capucine {
     background: rgba(255, 105, 180, 0.18);
@@ -358,14 +359,14 @@
     border-left-color: #ffd43b;
     color: #fff0b3;
   }
-  .event-heure { font-weight: 700; margin-right: 0.22vw; }
+  .event-heure { font-weight: 700; margin-right: 3px; }
   .cal-erreur {
     color: #ff8a80;
-    font-size: 0.85vw;
+    font-size: 13px;
     background: rgba(229, 83, 61, 0.14);
     border: 1px solid rgba(229, 83, 61, 0.4);
-    padding: 0.35vw 0.6vw;
-    border-radius: 0.4vw;
+    padding: 4px 8px;
+    border-radius: 5px;
     line-height: 1.25;
   }
 </style>
@@ -453,32 +454,11 @@ var CONFIG = {
 
 var compteurJsonp = 0;
 
-function requeteXhr(url, callback) {
-  try {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          callback(null, xhr.responseText);
-        } else {
-          callback(new Error("HTTP " + xhr.status), null);
-        }
-      }
-    };
-    xhr.onerror = function () {
-      callback(new Error("Erreur r\u00e9seau XHR"), null);
-    };
-    xhr.send();
-  } catch (err) {
-    callback(err, null);
-  }
-}
-
+/* Transport JSONP direct via le relais Apps Script (validé sur Safari iOS 9) */
 function requeteViaRelaisJsonp(urlCible, callback) {
   var baseRelais = String(CONFIG.relaisAppsScript || "").replace(/^\s+|\s+$/g, "");
   if (!baseRelais) {
-    callback(new Error("Aucun relais configur\u00e9"), null);
+    callback(new Error("Aucun relais Apps Script configur\u00e9"), null);
     return;
   }
 
@@ -491,7 +471,7 @@ function requeteViaRelaisJsonp(urlCible, callback) {
     if (termine) return;
     termine = true;
     nettoyer();
-    callback(new Error("D\u00e9lai d\u00e9pass\u00e9"), null);
+    callback(new Error("D\u00e9lai d\u00e9pass\u00e9 (relais Apps Script)"), null);
   }, 15000);
 
   function nettoyer() {
@@ -505,7 +485,7 @@ function requeteViaRelaisJsonp(urlCible, callback) {
     termine = true;
     nettoyer();
     if (!reponse) {
-      callback(new Error("R\u00e9ponse vide"), null);
+      callback(new Error("R\u00e9ponse vide du relais"), null);
     } else if (reponse.erreur) {
       callback(new Error(reponse.erreur), null);
     } else {
@@ -517,29 +497,17 @@ function requeteViaRelaisJsonp(urlCible, callback) {
     if (termine) return;
     termine = true;
     nettoyer();
-    callback(new Error("Connexion SSL refus\u00e9e par le navigateur"), null);
+    callback(new Error("Connexion au relais bloqu\u00e9e (certificat SSL iOS 9)"), null);
   };
 
   var sep = baseRelais.indexOf("?") !== -1 ? "&" : "?";
-  script.src = baseRelais + sep + "url=" + encodeURIComponent(urlCible) + "&callback=" + encodeURIComponent(nomCallback);
+  script.src =
+    baseRelais +
+    sep +
+    "url=" + encodeURIComponent(urlCible) +
+    "&callback=" + encodeURIComponent(nomCallback);
+
   (document.head || document.getElementsByTagName("head")[0] || document.body).appendChild(script);
-}
-
-/* Charge une ressource : tente XHR (PC récent) puis bascule sur JSONP (anciens navigateurs) */
-function chargerRessource(urlCible, utiliserRelaisPourXhr, callback) {
-  var baseRelais = String(CONFIG.relaisAppsScript || "").replace(/^\s+|\s+$/g, "");
-  var sep = baseRelais.indexOf("?") !== -1 ? "&" : "?";
-  var urlXhr = utiliserRelaisPourXhr && baseRelais
-    ? baseRelais + sep + "url=" + encodeURIComponent(urlCible)
-    : urlCible;
-
-  requeteXhr(urlXhr, function (errXhr, texteXhr) {
-    if (!errXhr && texteXhr) {
-      callback(null, texteXhr);
-    } else {
-      requeteViaRelaisJsonp(urlCible, callback);
-    }
-  });
 }
 
 function deuxChiffres(n) {
@@ -671,8 +639,7 @@ function majMeteo() {
     "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
     "&timezone=" + encodeURIComponent(CONFIG.fuseauHoraire);
 
-  /* Tente Open-Meteo directement en XHR (PC récent), sinon passe par le relais JSONP */
-  chargerRessource(url, false, function (err, texte) {
+  requeteViaRelaisJsonp(url, function (err, texte) {
     if (err || !texte) {
       if (elErreur) {
         elErreur.textContent = "M\u00e9t\u00e9o indisponible (" + (err && err.message ? err.message : "erreur") + ")";
@@ -1068,8 +1035,7 @@ function afficherEvenementsDuJour(evenementsParJour) {
 }
 
 function recupererIcs(url, callback) {
-  /* Passe par le relais en XHR (PC récent) avec repli automatique sur JSONP */
-  chargerRessource(url, true, function (err, texte) {
+  requeteViaRelaisJsonp(url, function (err, texte) {
     if (err) {
       callback(err, null);
       return;
@@ -1091,9 +1057,9 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
 
   if (erreurs.length > 0) {
     statutEl.innerHTML = '<div class="cal-erreur">Calendriers indisponibles : ' + erreurs.join(" \u2014 ") + ".</div>";
-    zoneGrille.style.height = "70vh";
+    zoneGrille.style.height = "67vh";
   } else {
-    zoneGrille.style.height = "78vh";
+    zoneGrille.style.height = "75vh";
   }
 
   var maintenant = new Date();
@@ -1101,7 +1067,7 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
   var debutAujourdhui = debutJourLocal(maintenant);
   var lundiDepart = obtenirLundiSemaine(maintenant);
   var nbSemaines = Math.max(1, parseInt(CONFIG.nbSemainesPlanning, 10) || 3);
-  var hauteurLigneVh = Math.floor((erreurs.length > 0 ? 70 : 78) / nbSemaines) + "vh";
+  var hauteurLigneVh = Math.floor((erreurs.length > 0 ? 67 : 75) / nbSemaines) + "vh";
 
   for (var s = 0; s < nbSemaines; s++) {
     var ligneSemaine = document.createElement("div");
@@ -1152,15 +1118,22 @@ function majPlanning4Semaines() {
 
   var tousEvenements = [];
   var erreurs = [];
-  var termines = 0;
+  var cal1Termine = false;
+  var cal2Termine = false;
 
   function verifierFin() {
-    termines++;
-    if (termines < 2) return;
+    if (!cal1Termine || !cal2Termine) return;
 
     var evenementsParJour = {};
+    var vus = {};
+
     for (var i = 0; i < tousEvenements.length; i++) {
       var ev = tousEvenements[i];
+      var heureCle = ev.jourEntier ? "JOUR" : (ev.date.getHours() + ":" + ev.date.getMinutes());
+      var signature = ev.personne + "|" + ev.cleJour + "|" + heureCle + "|" + ev.titre;
+      if (vus[signature]) continue;
+      vus[signature] = true;
+
       if (!evenementsParJour[ev.cleJour]) evenementsParJour[ev.cleJour] = [];
       evenementsParJour[ev.cleJour].push(ev);
     }
@@ -1176,6 +1149,8 @@ function majPlanning4Semaines() {
   }
 
   recupererIcs(CONFIG.icsCal1, function (err1, texte1) {
+    if (cal1Termine) return;
+    cal1Termine = true;
     if (!err1 && texte1) {
       tousEvenements = tousEvenements.concat(extraireEvenementsIcs(texte1, CONFIG.titreCal1, "capucine"));
     } else {
@@ -1185,6 +1160,8 @@ function majPlanning4Semaines() {
   });
 
   recupererIcs(CONFIG.icsCal2, function (err2, texte2) {
+    if (cal2Termine) return;
+    cal2Termine = true;
     if (!err2 && texte2) {
       tousEvenements = tousEvenements.concat(extraireEvenementsIcs(texte2, CONFIG.titreCal2, "clemence"));
     } else {
@@ -1198,7 +1175,5 @@ majPlanning4Semaines();
 setInterval(majPlanning4Semaines, 15 * 60 * 1000);
 setTimeout(function () { location.reload(); }, 3 * 60 * 60 * 1000);
 </script>
-</body>
-</html>
 </body>
 </html>
