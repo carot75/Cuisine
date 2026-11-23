@@ -453,12 +453,32 @@ var CONFIG = {
 
 var compteurJsonp = 0;
 
-/* Requête via balise <script> JSONP passant par le relais Apps Script
-   pour éviter les blocages XHR / CORS / HTTP 0 sous Safari iOS 9 */
+function requeteXhr(url, callback) {
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          callback(null, xhr.responseText);
+        } else {
+          callback(new Error("HTTP " + xhr.status), null);
+        }
+      }
+    };
+    xhr.onerror = function () {
+      callback(new Error("Erreur r\u00e9seau XHR"), null);
+    };
+    xhr.send();
+  } catch (err) {
+    callback(err, null);
+  }
+}
+
 function requeteViaRelaisJsonp(urlCible, callback) {
   var baseRelais = String(CONFIG.relaisAppsScript || "").replace(/^\s+|\s+$/g, "");
   if (!baseRelais) {
-    callback(new Error("Aucun relais Apps Script configur\u00e9"), null);
+    callback(new Error("Aucun relais configur\u00e9"), null);
     return;
   }
 
@@ -471,19 +491,13 @@ function requeteViaRelaisJsonp(urlCible, callback) {
     if (termine) return;
     termine = true;
     nettoyer();
-    callback(new Error("D\u00e9lai d\u00e9pass\u00e9 (relais Apps Script)"), null);
+    callback(new Error("D\u00e9lai d\u00e9pass\u00e9"), null);
   }, 15000);
 
   function nettoyer() {
     clearTimeout(minuteur);
-    try {
-      delete window[nomCallback];
-    } catch (e) {
-      window[nomCallback] = undefined;
-    }
-    if (script && script.parentNode) {
-      script.parentNode.removeChild(script);
-    }
+    try { delete window[nomCallback]; } catch (e) { window[nomCallback] = undefined; }
+    if (script && script.parentNode) script.parentNode.removeChild(script);
   }
 
   window[nomCallback] = function (reponse) {
@@ -491,7 +505,7 @@ function requeteViaRelaisJsonp(urlCible, callback) {
     termine = true;
     nettoyer();
     if (!reponse) {
-      callback(new Error("R\u00e9ponse vide du relais"), null);
+      callback(new Error("R\u00e9ponse vide"), null);
     } else if (reponse.erreur) {
       callback(new Error(reponse.erreur), null);
     } else {
@@ -503,17 +517,29 @@ function requeteViaRelaisJsonp(urlCible, callback) {
     if (termine) return;
     termine = true;
     nettoyer();
-    callback(new Error("Connexion au relais bloqu\u00e9e (certificat SSL iOS 9)"), null);
+    callback(new Error("Connexion SSL refus\u00e9e par le navigateur"), null);
   };
 
   var sep = baseRelais.indexOf("?") !== -1 ? "&" : "?";
-  script.src =
-    baseRelais +
-    sep +
-    "url=" + encodeURIComponent(urlCible) +
-    "&callback=" + encodeURIComponent(nomCallback);
-
+  script.src = baseRelais + sep + "url=" + encodeURIComponent(urlCible) + "&callback=" + encodeURIComponent(nomCallback);
   (document.head || document.getElementsByTagName("head")[0] || document.body).appendChild(script);
+}
+
+/* Charge une ressource : tente XHR (PC récent) puis bascule sur JSONP (anciens navigateurs) */
+function chargerRessource(urlCible, utiliserRelaisPourXhr, callback) {
+  var baseRelais = String(CONFIG.relaisAppsScript || "").replace(/^\s+|\s+$/g, "");
+  var sep = baseRelais.indexOf("?") !== -1 ? "&" : "?";
+  var urlXhr = utiliserRelaisPourXhr && baseRelais
+    ? baseRelais + sep + "url=" + encodeURIComponent(urlCible)
+    : urlCible;
+
+  requeteXhr(urlXhr, function (errXhr, texteXhr) {
+    if (!errXhr && texteXhr) {
+      callback(null, texteXhr);
+    } else {
+      requeteViaRelaisJsonp(urlCible, callback);
+    }
+  });
 }
 
 function deuxChiffres(n) {
@@ -556,15 +582,7 @@ var MOIS_COURTS_FR = [
   "juil.", "ao\u00fbt", "sept.", "oct.", "nov.", "d\u00e9c."
 ];
 
-var CODES_JOUR_ICS = {
-  SU: 0,
-  MO: 1,
-  TU: 2,
-  WE: 3,
-  TH: 4,
-  FR: 5,
-  SA: 6
-};
+var CODES_JOUR_ICS = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
 
 function majHorloge() {
   try {
@@ -581,9 +599,7 @@ function majHorloge() {
         MOIS_FR[maintenant.getMonth()] + " " +
         maintenant.getFullYear();
     }
-  } catch (e) {
-    if (window.console && console.error) console.error("Erreur horloge :", e);
-  }
+  } catch (e) {}
 }
 majHorloge();
 setInterval(majHorloge, 5000);
@@ -611,16 +627,13 @@ function afficherMeteoHoraire(hourly) {
   }
 
   var maintenant = new Date();
-  var seuilIso =
-    cleDateLocale(maintenant) + "T" + deuxChiffres(maintenant.getHours()) + ":00";
-
+  var seuilIso = cleDateLocale(maintenant) + "T" + deuxChiffres(maintenant.getHours()) + ":00";
   var nbAffiches = 0;
   var maxHeures = Math.max(1, parseInt(CONFIG.maxHeuresJournee, 10) || 8);
 
   for (var i = 0; i < hourly.time.length; i++) {
     var horodatage = String(hourly.time[i] || "");
-    if (horodatage.length < 16) continue;
-    if (horodatage < seuilIso) continue;
+    if (horodatage.length < 16 || horodatage < seuilIso) continue;
 
     var parties = horodatage.split("T");
     var hParts = parties[1].split(":");
@@ -658,7 +671,8 @@ function majMeteo() {
     "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
     "&timezone=" + encodeURIComponent(CONFIG.fuseauHoraire);
 
-  requeteViaRelaisJsonp(url, function (err, texte) {
+  /* Tente Open-Meteo directement en XHR (PC récent), sinon passe par le relais JSONP */
+  chargerRessource(url, false, function (err, texte) {
     if (err || !texte) {
       if (elErreur) {
         elErreur.textContent = "M\u00e9t\u00e9o indisponible (" + (err && err.message ? err.message : "erreur") + ")";
@@ -742,20 +756,13 @@ function analyserDateIcs(valeurBrute) {
     var min = parseInt(matchDateHeure[5], 10);
     var sec = matchDateHeure[6] ? parseInt(matchDateHeure[6], 10) : 0;
     var estUtc = !!matchDateHeure[7];
-    if (estUtc) {
-      return new Date(Date.UTC(a, m - 1, j, h, min, sec));
-    }
+    if (estUtc) return new Date(Date.UTC(a, m - 1, j, h, min, sec));
     return new Date(a, m - 1, j, h, min, sec);
   }
 
   var matchJour = propre.match(/^(\d{4})(\d{2})(\d{2})$/);
   if (matchJour) {
-    return new Date(
-      parseInt(matchJour[1], 10),
-      parseInt(matchJour[2], 10) - 1,
-      parseInt(matchJour[3], 10),
-      0, 0, 0
-    );
+    return new Date(parseInt(matchJour[1], 10), parseInt(matchJour[2], 10) - 1, parseInt(matchJour[3], 10), 0, 0, 0);
   }
   return null;
 }
@@ -778,11 +785,7 @@ function ajouterDureeIcs(dateDebut, dureeBrute) {
 }
 
 function cleDateLocale(dateObj) {
-  return (
-    dateObj.getFullYear() + "-" +
-    deuxChiffres(dateObj.getMonth() + 1) + "-" +
-    deuxChiffres(dateObj.getDate())
-  );
+  return dateObj.getFullYear() + "-" + deuxChiffres(dateObj.getMonth() + 1) + "-" + deuxChiffres(dateObj.getDate());
 }
 
 function debutJourLocal(dateObj) {
@@ -801,23 +804,12 @@ function obtenirFinFenetreAffichage() {
   var maintenant = new Date();
   var lundiDepart = obtenirLundiSemaine(maintenant);
   var nbSemaines = Math.max(1, parseInt(CONFIG.nbSemainesPlanning, 10) || 3);
-  return new Date(
-    lundiDepart.getFullYear(),
-    lundiDepart.getMonth(),
-    lundiDepart.getDate() + nbSemaines * 7,
-    23, 59, 59, 999
-  );
+  return new Date(lundiDepart.getFullYear(), lundiDepart.getMonth(), lundiDepart.getDate() + nbSemaines * 7, 23, 59, 59, 999);
 }
 
 function analyserRegleRecurrence(rruleBrute) {
   if (!rruleBrute) return null;
-  var regle = {
-    freq: "",
-    interval: 1,
-    count: null,
-    until: null,
-    byday: []
-  };
+  var regle = { freq: "", interval: 1, count: null, until: null, byday: [] };
   var parts = String(rruleBrute).split(";");
   for (var i = 0; i < parts.length; i++) {
     var kv = parts[i].split("=");
@@ -825,23 +817,19 @@ function analyserRegleRecurrence(rruleBrute) {
     var cle = kv[0].toUpperCase();
     var val = kv[1].toUpperCase();
 
-    if (cle === "FREQ") {
-      regle.freq = val;
-    } else if (cle === "INTERVAL") {
+    if (cle === "FREQ") regle.freq = val;
+    else if (cle === "INTERVAL") {
       var iv = parseInt(val, 10);
       if (!isNaN(iv) && iv > 0) regle.interval = iv;
     } else if (cle === "COUNT") {
       var ct = parseInt(val, 10);
       if (!isNaN(ct) && ct > 0) regle.count = ct;
-    } else if (cle === "UNTIL") {
-      regle.until = analyserDateIcs(val);
-    } else if (cle === "BYDAY") {
+    } else if (cle === "UNTIL") regle.until = analyserDateIcs(val);
+    else if (cle === "BYDAY") {
       var joursList = val.split(",");
       for (var j = 0; j < joursList.length; j++) {
         var codeJour = joursList[j].replace(/^[+-]?\d+/, "");
-        if (CODES_JOUR_ICS.hasOwnProperty(codeJour)) {
-          regle.byday.push(CODES_JOUR_ICS[codeJour]);
-        }
+        if (CODES_JOUR_ICS.hasOwnProperty(codeJour)) regle.byday.push(CODES_JOUR_ICS[codeJour]);
       }
     }
   }
@@ -850,9 +838,7 @@ function analyserRegleRecurrence(rruleBrute) {
 
 function genererDatesOccurrences(dateDebut, rruleBrute, exdates) {
   var regle = analyserRegleRecurrence(rruleBrute);
-  if (!regle) {
-    return [dateDebut];
-  }
+  if (!regle) return [dateDebut];
 
   var finAffichage = obtenirFinFenetreAffichage();
   var dateLimite = finAffichage;
@@ -864,9 +850,7 @@ function genererDatesOccurrences(dateDebut, rruleBrute, exdates) {
   if (exdates && exdates.length) {
     for (var x = 0; x < exdates.length; x++) {
       var dEx = analyserDateIcs(exdates[x]);
-      if (dEx && !isNaN(dEx.getTime())) {
-        exclusions[cleDateLocale(dEx)] = true;
-      }
+      if (dEx && !isNaN(dEx.getTime())) exclusions[cleDateLocale(dEx)] = true;
     }
   }
 
@@ -882,22 +866,14 @@ function genererDatesOccurrences(dateDebut, rruleBrute, exdates) {
     totalEvaluations++;
     if (regle.count && totalEvaluations > regle.count) return;
     if (candidat.getTime() > dateLimite.getTime()) return;
-    if (!exclusions[cleDateLocale(candidat)]) {
-      occurrences.push(candidat);
-    }
+    if (!exclusions[cleDateLocale(candidat)]) occurrences.push(candidat);
   }
 
   if (regle.freq === "DAILY") {
     var idxJour = 0;
     while (garde < CONFIG.maxOccurrencesRecurrence) {
-      var dDaily = new Date(
-        dateDebut.getFullYear(),
-        dateDebut.getMonth(),
-        dateDebut.getDate() + idxJour * regle.interval,
-        heure, minute, seconde
-      );
-      if (dDaily.getTime() > dateLimite.getTime()) break;
-      if (regle.count && totalEvaluations >= regle.count) break;
+      var dDaily = new Date(dateDebut.getFullYear(), dateDebut.getMonth(), dateDebut.getDate() + idxJour * regle.interval, heure, minute, seconde);
+      if (dDaily.getTime() > dateLimite.getTime() || (regle.count && totalEvaluations >= regle.count)) break;
       ajouterSiValide(dDaily);
       idxJour++;
       garde++;
@@ -911,28 +887,16 @@ function genererDatesOccurrences(dateDebut, rruleBrute, exdates) {
     var idxSemaine = 0;
 
     while (garde < CONFIG.maxOccurrencesRecurrence) {
-      var lundiCourant = new Date(
-        lundiBase.getFullYear(),
-        lundiBase.getMonth(),
-        lundiBase.getDate() + idxSemaine * 7 * regle.interval,
-        0, 0, 0
-      );
-      if (lundiCourant.getTime() > dateLimite.getTime()) break;
-      if (regle.count && totalEvaluations >= regle.count) break;
+      var lundiCourant = new Date(lundiBase.getFullYear(), lundiBase.getMonth(), lundiBase.getDate() + idxSemaine * 7 * regle.interval, 0, 0, 0);
+      if (lundiCourant.getTime() > dateLimite.getTime() || (regle.count && totalEvaluations >= regle.count)) break;
 
       for (var k = 0; k < joursCibles.length; k++) {
         var decalageJour = (joursCibles[k] + 6) % 7;
-        var dHebdo = new Date(
-          lundiCourant.getFullYear(),
-          lundiCourant.getMonth(),
-          lundiCourant.getDate() + decalageJour,
-          heure, minute, seconde
-        );
+        var dHebdo = new Date(lundiCourant.getFullYear(), lundiCourant.getMonth(), lundiCourant.getDate() + decalageJour, heure, minute, seconde);
         if (dHebdo.getTime() > dateLimite.getTime()) continue;
         if (regle.count && totalEvaluations >= regle.count) break;
         ajouterSiValide(dHebdo);
       }
-
       idxSemaine++;
       garde++;
     }
@@ -943,14 +907,8 @@ function genererDatesOccurrences(dateDebut, rruleBrute, exdates) {
     var idxMois = 0;
     var jourDuMois = dateDebut.getDate();
     while (garde < CONFIG.maxOccurrencesRecurrence) {
-      var dMensuel = new Date(
-        dateDebut.getFullYear(),
-        dateDebut.getMonth() + idxMois * regle.interval,
-        jourDuMois,
-        heure, minute, seconde
-      );
-      if (dMensuel.getTime() > dateLimite.getTime()) break;
-      if (regle.count && totalEvaluations >= regle.count) break;
+      var dMensuel = new Date(dateDebut.getFullYear(), dateDebut.getMonth() + idxMois * regle.interval, jourDuMois, heure, minute, seconde);
+      if (dMensuel.getTime() > dateLimite.getTime() || (regle.count && totalEvaluations >= regle.count)) break;
       ajouterSiValide(dMensuel);
       idxMois++;
       garde++;
@@ -961,14 +919,8 @@ function genererDatesOccurrences(dateDebut, rruleBrute, exdates) {
   if (regle.freq === "YEARLY") {
     var idxAn = 0;
     while (garde < CONFIG.maxOccurrencesRecurrence) {
-      var dAnnuel = new Date(
-        dateDebut.getFullYear() + idxAn * regle.interval,
-        dateDebut.getMonth(),
-        dateDebut.getDate(),
-        heure, minute, seconde
-      );
-      if (dAnnuel.getTime() > dateLimite.getTime()) break;
-      if (regle.count && totalEvaluations >= regle.count) break;
+      var dAnnuel = new Date(dateDebut.getFullYear() + idxAn * regle.interval, dateDebut.getMonth(), dateDebut.getDate(), heure, minute, seconde);
+      if (dAnnuel.getTime() > dateLimite.getTime() || (regle.count && totalEvaluations >= regle.count)) break;
       ajouterSiValide(dAnnuel);
       idxAn++;
       garde++;
@@ -988,19 +940,14 @@ function obtenirJoursCouverts(dateDebut, dateFin, jourEntier) {
     if (jourEntier) {
       dernierJour = new Date(dateFin.getFullYear(), dateFin.getMonth(), dateFin.getDate() - 1, 0, 0, 0, 0);
     } else {
-      var estMinuitPile =
-        dateFin.getHours() === 0 &&
-        dateFin.getMinutes() === 0 &&
-        dateFin.getSeconds() === 0;
+      var estMinuitPile = dateFin.getHours() === 0 && dateFin.getMinutes() === 0 && dateFin.getSeconds() === 0;
       dernierJour = estMinuitPile
         ? new Date(dateFin.getFullYear(), dateFin.getMonth(), dateFin.getDate() - 1, 0, 0, 0, 0)
         : debutJourLocal(dateFin);
     }
   }
 
-  if (dernierJour.getTime() < jourCourant.getTime()) {
-    dernierJour = jourCourant;
-  }
+  if (dernierJour.getTime() < jourCourant.getTime()) dernierJour = jourCourant;
 
   var garde = 0;
   while (jourCourant.getTime() <= dernierJour.getTime() && garde < CONFIG.maxJoursEvenement) {
@@ -1008,16 +955,11 @@ function obtenirJoursCouverts(dateDebut, dateFin, jourEntier) {
     jourCourant = new Date(jourCourant.getFullYear(), jourCourant.getMonth(), jourCourant.getDate() + 1, 0, 0, 0, 0);
     garde++;
   }
-
   return jours;
 }
 
 function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
-  var lignesDepliees = String(texteIcs || "")
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
-    .replace(/\n[ \t]/g, "");
-
+  var lignesDepliees = String(texteIcs || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").replace(/\n[ \t]/g, "");
   var blocs = lignesDepliees.split("BEGIN:VEVENT");
   var evenements = [];
 
@@ -1027,12 +969,7 @@ function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
     var contenu = finIndex !== -1 ? bloc.slice(0, finIndex) : bloc;
     var lignes = contenu.split("\n");
 
-    var resume = "";
-    var dtstart = "";
-    var dtend = "";
-    var duration = "";
-    var rrule = "";
-    var exdates = [];
+    var resume = "", dtstart = "", dtend = "", duration = "", rrule = "", exdates = [];
 
     for (var l = 0; l < lignes.length; l++) {
       var ligne = lignes[l];
@@ -1073,7 +1010,6 @@ function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
       var dParties = dtstart.split(":");
       var dPropre = dParties[dParties.length - 1].replace(/^\s+|\s+$/g, "");
       var estJourEntier = /^\d{8}$/.test(dPropre);
-
       var datesOccurrences = genererDatesOccurrences(dateDebutInitiale, rrule, exdates);
 
       for (var o = 0; o < datesOccurrences.length; o++) {
@@ -1082,21 +1018,18 @@ function extraireEvenementsIcs(texteIcs, personne, classeCouleur) {
         var joursCouverts = obtenirJoursCouverts(occDebut, occFin, estJourEntier);
 
         for (var k = 0; k < joursCouverts.length; k++) {
-          var cleJour = joursCouverts[k];
-          var estPremierJour = (k === 0);
           evenements.push({
             personne: personne,
             classeCouleur: classeCouleur,
             titre: resume,
             date: occDebut,
-            cleJour: cleJour,
-            jourEntier: estJourEntier || !estPremierJour
+            cleJour: joursCouverts[k],
+            jourEntier: estJourEntier || (k !== 0)
           });
         }
       }
     }
   }
-
   return evenements;
 }
 
@@ -1104,18 +1037,15 @@ function formaterHeureCourte(dateObj, jourEntier) {
   if (jourEntier) return "";
   var h = dateObj.getHours();
   var min = dateObj.getMinutes();
-  if (min === 0) return h + "h";
-  return h + "h" + deuxChiffres(min);
+  return min === 0 ? h + "h" : h + "h" + deuxChiffres(min);
 }
 
-/* Affiche la liste détaillée des événements du jour sous les prévisions sur 7 jours */
 function afficherEvenementsDuJour(evenementsParJour) {
   var conteneurJour = document.getElementById("evenements-du-jour");
   if (!conteneurJour) return;
 
   var cleAujourdhui = cleDateLocale(new Date());
   var eventsAuj = (evenementsParJour && evenementsParJour[cleAujourdhui]) ? evenementsParJour[cleAujourdhui] : [];
-
   var html = '<div class="events-jour-titre-section">' + CONFIG.titreEvenementsJour + '</div>';
 
   if (eventsAuj.length === 0) {
@@ -1128,19 +1058,18 @@ function afficherEvenementsDuJour(evenementsParJour) {
     var ev = eventsAuj[i];
     var heureTexte = formaterHeureCourte(ev.date, ev.jourEntier);
     var etiquette = ev.personne + (heureTexte ? " \u00b7 " + heureTexte : "");
-
     html +=
       '<div class="carte-event-jour ' + ev.classeCouleur + '">' +
         '<span class="event-jour-meta">[' + etiquette + ']</span>' +
         '<span>' + ev.titre + '</span>' +
       '</div>';
   }
-
   conteneurJour.innerHTML = html;
 }
 
 function recupererIcs(url, callback) {
-  requeteViaRelaisJsonp(url, function (err, texte) {
+  /* Passe par le relais en XHR (PC récent) avec repli automatique sur JSONP */
+  chargerRessource(url, true, function (err, texte) {
     if (err) {
       callback(err, null);
       return;
@@ -1161,10 +1090,7 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
   grille.innerHTML = "";
 
   if (erreurs.length > 0) {
-    statutEl.innerHTML =
-      '<div class="cal-erreur">Calendriers indisponibles : ' +
-      erreurs.join(" \u2014 ") +
-      ".</div>";
+    statutEl.innerHTML = '<div class="cal-erreur">Calendriers indisponibles : ' + erreurs.join(" \u2014 ") + ".</div>";
     zoneGrille.style.height = "70vh";
   } else {
     zoneGrille.style.height = "78vh";
@@ -1184,12 +1110,7 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
 
     for (var j = 0; j < 7; j++) {
       var offsetJours = s * 7 + j;
-      var dateCase = new Date(
-        lundiDepart.getFullYear(),
-        lundiDepart.getMonth(),
-        lundiDepart.getDate() + offsetJours,
-        0, 0, 0, 0
-      );
+      var dateCase = new Date(lundiDepart.getFullYear(), lundiDepart.getMonth(), lundiDepart.getDate() + offsetJours, 0, 0, 0, 0);
       var cleCase = cleDateLocale(dateCase);
       var estAujourdhui = cleCase === cleAujourdhui;
       var estPasse = dateCase < debutAujourdhui;
@@ -1198,13 +1119,11 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
       caseDiv.className = "case-jour" + (estAujourdhui ? " aujourd-hui" : "") + (estPasse ? " jour-passe" : "");
       caseDiv.style.height = hauteurLigneVh;
 
-      var moisCourt = MOIS_COURTS_FR[dateCase.getMonth()];
-
       var enteteJour = document.createElement("div");
       enteteJour.className = "case-entete-jour";
       enteteJour.innerHTML =
         '<span class="numero-jour">' + dateCase.getDate() + '</span>' +
-        '<span class="mois-court">' + moisCourt + '</span>';
+        '<span class="mois-court">' + MOIS_COURTS_FR[dateCase.getMonth()] + '</span>';
 
       var listeEventsJour = document.createElement("div");
       listeEventsJour.className = "case-evenements";
@@ -1215,9 +1134,7 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
         var puce = document.createElement("div");
         puce.className = "event-puce " + ev.classeCouleur;
         var heureTexte = formaterHeureCourte(ev.date, ev.jourEntier);
-        puce.innerHTML =
-          (heureTexte ? '<span class="event-heure">' + heureTexte + '</span>' : '') +
-          '<span>' + ev.titre + '</span>';
+        puce.innerHTML = (heureTexte ? '<span class="event-heure">' + heureTexte + '</span>' : '') + '<span>' + ev.titre + '</span>';
         listeEventsJour.appendChild(puce);
       }
 
@@ -1225,7 +1142,6 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
       caseDiv.appendChild(listeEventsJour);
       ligneSemaine.appendChild(caseDiv);
     }
-
     grille.appendChild(ligneSemaine);
   }
 }
@@ -1245,17 +1161,13 @@ function majPlanning4Semaines() {
     var evenementsParJour = {};
     for (var i = 0; i < tousEvenements.length; i++) {
       var ev = tousEvenements[i];
-      if (!evenementsParJour[ev.cleJour]) {
-        evenementsParJour[ev.cleJour] = [];
-      }
+      if (!evenementsParJour[ev.cleJour]) evenementsParJour[ev.cleJour] = [];
       evenementsParJour[ev.cleJour].push(ev);
     }
 
     for (var cle in evenementsParJour) {
       if (evenementsParJour.hasOwnProperty(cle)) {
-        evenementsParJour[cle].sort(function (a, b) {
-          return a.date - b.date;
-        });
+        evenementsParJour[cle].sort(function (a, b) { return a.date - b.date; });
       }
     }
 
@@ -1265,9 +1177,7 @@ function majPlanning4Semaines() {
 
   recupererIcs(CONFIG.icsCal1, function (err1, texte1) {
     if (!err1 && texte1) {
-      tousEvenements = tousEvenements.concat(
-        extraireEvenementsIcs(texte1, CONFIG.titreCal1, "capucine")
-      );
+      tousEvenements = tousEvenements.concat(extraireEvenementsIcs(texte1, CONFIG.titreCal1, "capucine"));
     } else {
       erreurs.push(CONFIG.titreCal1 + " (" + (err1 && err1.message ? err1.message : "erreur") + ")");
     }
@@ -1276,9 +1186,7 @@ function majPlanning4Semaines() {
 
   recupererIcs(CONFIG.icsCal2, function (err2, texte2) {
     if (!err2 && texte2) {
-      tousEvenements = tousEvenements.concat(
-        extraireEvenementsIcs(texte2, CONFIG.titreCal2, "clemence")
-      );
+      tousEvenements = tousEvenements.concat(extraireEvenementsIcs(texte2, CONFIG.titreCal2, "clemence"));
     } else {
       erreurs.push(CONFIG.titreCal2 + " (" + (err2 && err2.message ? err2.message : "erreur") + ")");
     }
@@ -1288,8 +1196,9 @@ function majPlanning4Semaines() {
 
 majPlanning4Semaines();
 setInterval(majPlanning4Semaines, 15 * 60 * 1000);
-
 setTimeout(function () { location.reload(); }, 3 * 60 * 60 * 1000);
 </script>
+</body>
+</html>
 </body>
 </html>
