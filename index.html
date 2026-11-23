@@ -2,7 +2,9 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Tableau cuisine</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -271,10 +273,11 @@
     margin-bottom: 0.25vw;
   }
 
+  /* Hauteur explicite en vh pour éviter le bug height: 100% dans display: table sur Safari iOS 9 */
   #zone-grille {
     position: relative;
     width: 100%;
-    height: 83%;
+    height: 78vh;
   }
 
   #grille-4-semaines {
@@ -287,6 +290,7 @@
   }
   .ligne-semaine {
     display: table-row;
+    height: 25vh;
   }
   .case-jour {
     display: table-cell;
@@ -328,7 +332,7 @@
     text-transform: capitalize;
   }
   .case-evenements {
-    height: 80%;
+    height: 19vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -447,34 +451,69 @@ var CONFIG = {
 };
 /* ================= FIN DE LA CONFIGURATION ================= */
 
-function extraireHote(url) {
-  var m = String(url || "").match(/^https?:\/\/([^\/?#]+)/i);
-  return m ? m[1] : url;
-}
+var compteurJsonp = 0;
 
-function requeteTexte(url, callback) {
-  var hote = extraireHote(url);
-  try {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          callback(null, xhr.responseText);
-        } else if (xhr.status === 0) {
-          callback(new Error(hote + " : HTTP 0 (TLS/R\u00e9seau refus\u00e9)"), null);
-        } else {
-          callback(new Error(hote + " : HTTP " + xhr.status), null);
-        }
-      }
-    };
-    xhr.onerror = function () {
-      callback(new Error(hote + " : erreur r\u00e9seau / TLS"), null);
-    };
-    xhr.send();
-  } catch (err) {
-    callback(new Error(hote + " : " + (err && err.message ? err.message : "exception")), null);
+/* Requête via balise <script> JSONP passant par le relais Apps Script
+   pour éviter les blocages XHR / CORS / HTTP 0 sous Safari iOS 9 */
+function requeteViaRelaisJsonp(urlCible, callback) {
+  var baseRelais = String(CONFIG.relaisAppsScript || "").replace(/^\s+|\s+$/g, "");
+  if (!baseRelais) {
+    callback(new Error("Aucun relais Apps Script configur\u00e9"), null);
+    return;
   }
+
+  compteurJsonp++;
+  var nomCallback = "__cbRelais_" + compteurJsonp + "_" + new Date().getTime();
+  var script = document.createElement("script");
+  var termine = false;
+
+  var minuteur = setTimeout(function () {
+    if (termine) return;
+    termine = true;
+    nettoyer();
+    callback(new Error("D\u00e9lai d\u00e9pass\u00e9 (relais Apps Script)"), null);
+  }, 15000);
+
+  function nettoyer() {
+    clearTimeout(minuteur);
+    try {
+      delete window[nomCallback];
+    } catch (e) {
+      window[nomCallback] = undefined;
+    }
+    if (script && script.parentNode) {
+      script.parentNode.removeChild(script);
+    }
+  }
+
+  window[nomCallback] = function (reponse) {
+    if (termine) return;
+    termine = true;
+    nettoyer();
+    if (!reponse) {
+      callback(new Error("R\u00e9ponse vide du relais"), null);
+    } else if (reponse.erreur) {
+      callback(new Error(reponse.erreur), null);
+    } else {
+      callback(null, reponse.texte || "");
+    }
+  };
+
+  script.onerror = function () {
+    if (termine) return;
+    termine = true;
+    nettoyer();
+    callback(new Error("Connexion au relais bloqu\u00e9e (certificat SSL iOS 9)"), null);
+  };
+
+  var sep = baseRelais.indexOf("?") !== -1 ? "&" : "?";
+  script.src =
+    baseRelais +
+    sep +
+    "url=" + encodeURIComponent(urlCible) +
+    "&callback=" + encodeURIComponent(nomCallback);
+
+  (document.head || document.getElementsByTagName("head")[0] || document.body).appendChild(script);
 }
 
 function deuxChiffres(n) {
@@ -571,8 +610,6 @@ function afficherMeteoHoraire(hourly) {
     return;
   }
 
-  /* On construit l'horodatage ISO local de l'heure actuelle (ex: "2026-03-20T14:00")
-     pour comparer directement les chaînes et inclure les premières heures du lendemain si besoin */
   var maintenant = new Date();
   var seuilIso =
     cleDateLocale(maintenant) + "T" + deuxChiffres(maintenant.getHours()) + ":00";
@@ -583,8 +620,6 @@ function afficherMeteoHoraire(hourly) {
   for (var i = 0; i < hourly.time.length; i++) {
     var horodatage = String(hourly.time[i] || "");
     if (horodatage.length < 16) continue;
-
-    /* Ignore les heures déjà passées */
     if (horodatage < seuilIso) continue;
 
     var parties = horodatage.split("T");
@@ -623,7 +658,7 @@ function majMeteo() {
     "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
     "&timezone=" + encodeURIComponent(CONFIG.fuseauHoraire);
 
-  requeteTexte(url, function (err, texte) {
+  requeteViaRelaisJsonp(url, function (err, texte) {
     if (err || !texte) {
       if (elErreur) {
         elErreur.textContent = "M\u00e9t\u00e9o indisponible (" + (err && err.message ? err.message : "erreur") + ")";
@@ -1105,20 +1140,13 @@ function afficherEvenementsDuJour(evenementsParJour) {
 }
 
 function recupererIcs(url, callback) {
-  var baseRelais = String(CONFIG.relaisAppsScript || "").replace(/^\s+|\s+$/g, "");
-  if (!baseRelais) {
-    callback(new Error("Aucun relais Apps Script configur\u00e9"), null);
-    return;
-  }
-  var sep = baseRelais.indexOf("?") !== -1 ? "&" : "?";
-  var urlRelais = baseRelais + sep + "url=" + encodeURIComponent(url);
-  requeteTexte(urlRelais, function (err, texte) {
+  requeteViaRelaisJsonp(url, function (err, texte) {
     if (err) {
       callback(err, null);
       return;
     }
     if (!texte || texte.indexOf("BEGIN:VCALENDAR") === -1) {
-      callback(new Error(extraireHote(urlRelais) + " : r\u00e9ponse non-ICS"), null);
+      callback(new Error("R\u00e9ponse non-ICS re\u00e7ue"), null);
       return;
     }
     callback(null, texte);
@@ -1137,9 +1165,9 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
       '<div class="cal-erreur">Calendriers indisponibles : ' +
       erreurs.join(" \u2014 ") +
       ".</div>";
-    zoneGrille.style.height = "75%";
+    zoneGrille.style.height = "70vh";
   } else {
-    zoneGrille.style.height = "84%";
+    zoneGrille.style.height = "78vh";
   }
 
   var maintenant = new Date();
@@ -1147,12 +1175,12 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
   var debutAujourdhui = debutJourLocal(maintenant);
   var lundiDepart = obtenirLundiSemaine(maintenant);
   var nbSemaines = Math.max(1, parseInt(CONFIG.nbSemainesPlanning, 10) || 3);
-  var hauteurLignePct = (100 / nbSemaines).toFixed(4) + "%";
+  var hauteurLigneVh = Math.floor((erreurs.length > 0 ? 70 : 78) / nbSemaines) + "vh";
 
   for (var s = 0; s < nbSemaines; s++) {
     var ligneSemaine = document.createElement("div");
     ligneSemaine.className = "ligne-semaine";
-    ligneSemaine.style.height = hauteurLignePct;
+    ligneSemaine.style.height = hauteurLigneVh;
 
     for (var j = 0; j < 7; j++) {
       var offsetJours = s * 7 + j;
@@ -1168,7 +1196,7 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
 
       var caseDiv = document.createElement("div");
       caseDiv.className = "case-jour" + (estAujourdhui ? " aujourd-hui" : "") + (estPasse ? " jour-passe" : "");
-      caseDiv.style.height = hauteurLignePct;
+      caseDiv.style.height = hauteurLigneVh;
 
       var moisCourt = MOIS_COURTS_FR[dateCase.getMonth()];
 
