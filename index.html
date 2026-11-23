@@ -63,50 +63,50 @@
   #meteo-details { font-size: 0.9vw; color: #8b98a3; margin-top: 0.2vw; }
   #erreur-meteo { font-size: 0.92vw; color: #e5533d; display: none; margin-top: 0.4vw; line-height: 1.35; }
 
-  /* Évolution météo heure par heure (jusqu'à 8 prochaines heures, max 23h) */
+  /* Évolution météo heure par heure : 8 prochaines heures sans défilement */
   #meteo-horaire {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0.22vw 0;
     margin-top: 0.85vw;
     background: #181f26;
     border-radius: 0.5vw;
-    padding: 0.45vw 0.5vw;
-    white-space: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    padding: 0.4vw 0.25vw;
+    overflow: hidden;
   }
   .heure-carte {
-    display: inline-block;
+    display: table-cell;
     vertical-align: top;
     text-align: center;
-    min-width: 3.7vw;
-    padding: 0.25vw 0.3vw;
-    margin-right: 0.2vw;
+    padding: 0.25vw 0.1vw;
     border-radius: 0.38vw;
     background: #202933;
   }
-  .heure-carte:last-child { margin-right: 0; }
   .heure-libelle {
-    font-size: 0.8vw;
+    font-size: 0.78vw;
     color: #8b98a3;
     font-weight: 600;
   }
   .heure-icone {
-    margin: 0.2vw 0;
+    margin: 0.18vw 0;
   }
   .heure-icone .icone-svg {
-    width: 1.45vw;
-    height: 1.45vw;
+    width: 1.35vw;
+    height: 1.35vw;
     display: inline-block;
     vertical-align: middle;
   }
   .heure-temp {
-    font-size: 0.88vw;
+    font-size: 0.84vw;
     font-weight: 700;
     color: #f4f6f8;
   }
   .heure-pluie {
-    font-size: 0.76vw;
+    font-size: 0.72vw;
     color: #6ea8fe;
-    margin-top: 0.12vw;
+    margin-top: 0.1vw;
   }
 
   /* Prévisions sur 7 jours */
@@ -571,23 +571,26 @@ function afficherMeteoHoraire(hourly) {
     return;
   }
 
+  /* On construit l'horodatage ISO local de l'heure actuelle (ex: "2026-03-20T14:00")
+     pour comparer directement les chaînes et inclure les premières heures du lendemain si besoin */
   var maintenant = new Date();
-  var cleAujourdhui = cleDateLocale(maintenant);
-  var heureActuelle = maintenant.getHours();
+  var seuilIso =
+    cleDateLocale(maintenant) + "T" + deuxChiffres(maintenant.getHours()) + ":00";
+
   var nbAffiches = 0;
   var maxHeures = Math.max(1, parseInt(CONFIG.maxHeuresJournee, 10) || 8);
 
   for (var i = 0; i < hourly.time.length; i++) {
     var horodatage = String(hourly.time[i] || "");
+    if (horodatage.length < 16) continue;
+
+    /* Ignore les heures déjà passées */
+    if (horodatage < seuilIso) continue;
+
     var parties = horodatage.split("T");
-    if (parties.length !== 2) continue;
-
-    var datePart = parties[0];
-    if (datePart !== cleAujourdhui) continue;
-
     var hParts = parties[1].split(":");
     var heureSlot = parseInt(hParts[0], 10);
-    if (isNaN(heureSlot) || heureSlot < heureActuelle || heureSlot > 23) continue;
+    if (isNaN(heureSlot)) continue;
 
     var codeH = hourly.weather_code ? hourly.weather_code[i] : 0;
     var tempH = hourly.temperature_2m ? Math.round(hourly.temperature_2m[i]) : 0;
@@ -606,7 +609,7 @@ function afficherMeteoHoraire(hourly) {
     if (nbAffiches >= maxHeures) break;
   }
 
-  conteneurHoraire.style.display = nbAffiches > 0 ? "block" : "none";
+  conteneurHoraire.style.display = nbAffiches > 0 ? "table" : "none";
 }
 
 function majMeteo() {
