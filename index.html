@@ -17,32 +17,32 @@
     position: relative;
   }
 
-  /* Colonne gauche élargie à 37 % pour accueillir les polices agrandies */
+  /* Colonne gauche : horloge, date, météo et événements du jour */
   #colonne-gauche {
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
-    width: 37%;
+    width: 34%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Colonne droite ajustée à 63 % */
+  /* Colonne droite : planning sur 3 semaines */
   #colonne-droite {
     position: absolute;
     top: 0;
     bottom: 0;
     right: 0;
-    width: 63%;
+    width: 66%;
   }
 
-  #colonne-gauche > div { padding: 1.1vw 1.2vw; }
-  #horloge { font-size: 6.4vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-  #date { font-size: 1.65vw; color: #8b98a3; margin-top: 0.35vw; text-transform: capitalize; }
+  #colonne-gauche > div { padding: 1.5vw; }
+  #horloge { font-size: 5.8vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  #date { font-size: 1.4vw; color: #8b98a3; margin-top: 0.4vw; text-transform: capitalize; }
 
   /* Bloc météo actuelle */
-  #meteo { margin-top: 0.9vw; }
+  #meteo { margin-top: 1.1vw; }
   #meteo-ligne-principale { display: table; }
   #meteo-icone {
     display: table-cell;
@@ -50,78 +50,78 @@
     padding-right: 0.8vw;
   }
   #meteo-icone .icone-svg {
-    width: 3.5vw;
-    height: 3.5vw;
+    width: 3.1vw;
+    height: 3.1vw;
     display: block;
   }
   #meteo-temp {
     display: table-cell;
     vertical-align: middle;
-    font-size: 3.4vw;
+    font-size: 2.9vw;
     font-weight: 300;
-    line-height: 1.05;
+    line-height: 1.1;
   }
-  #meteo-desc { font-size: 1.35vw; color: #8b98a3; margin-top: 0.2vw; }
-  #meteo-details { font-size: 1.1vw; color: #8b98a3; margin-top: 0.2vw; }
-  #erreur-meteo { font-size: 1.05vw; color: #e5533d; display: none; margin-top: 0.35vw; line-height: 1.3; }
+  #meteo-desc { font-size: 1.15vw; color: #8b98a3; margin-top: 0.25vw; }
+  #meteo-details { font-size: 0.9vw; color: #8b98a3; margin-top: 0.2vw; }
+  #erreur-meteo { font-size: 0.92vw; color: #e5533d; display: none; margin-top: 0.4vw; line-height: 1.35; }
 
-  /* Évolution météo heure par heure : 8 colonnes plus lisibles sans défilement */
+  /* Évolution météo heure par heure : 8 prochaines heures sans défilement */
   #meteo-horaire {
     display: table;
     width: 100%;
     table-layout: fixed;
     border-collapse: separate;
-    border-spacing: 0.14vw 0;
-    margin-top: 0.75vw;
+    border-spacing: 0.22vw 0;
+    margin-top: 0.85vw;
     background: #181f26;
     border-radius: 0.5vw;
-    padding: 0.35vw 0.18vw;
+    padding: 0.4vw 0.25vw;
     overflow: hidden;
   }
   .heure-carte {
     display: table-cell;
     vertical-align: top;
     text-align: center;
-    padding: 0.22vw 0.05vw;
+    padding: 0.25vw 0.1vw;
     border-radius: 0.38vw;
     background: #202933;
   }
   .heure-libelle {
-    font-size: 0.96vw;
+    font-size: 0.78vw;
     color: #8b98a3;
     font-weight: 600;
   }
   .heure-icone {
-    margin: 0.15vw 0;
+    margin: 0.18vw 0;
   }
   .heure-icone .icone-svg {
-    width: 1.55vw;
-    height: 1.55vw;
+    width: 1.35vw;
+    height: 1.35vw;
     display: inline-block;
     vertical-align: middle;
   }
   .heure-temp {
-    font-size: 1.05vw;
+    font-size: 0.84vw;
     font-weight: 700;
     color: #f4f6f8;
   }
   .heure-pluie {
-    font-size: 0.9vw;
+    font-size: 0.72vw;
     color: #6ea8fe;
-    margin-top: 0.08vw;
+    margin-top: 0.1vw;
   }
 
   /* Prévisions sur 7 jours */
-  #previsions-7j { margin-top: 0.75vw; }
+  #previsions-7j { margin-top: 0.85vw; }
   .jour-carte {
     display: table;
     width: 100%;
     table-layout: fixed;
     background: #181f26;
-    padding: 0.28vw 0.6vw;
+    padding: 0.34vw 0.65vw;
     border-radius: 0.5vw;
-    font-size: 1.12vw;
-    margin-bottom: 0.25vw;
+    font-size: 0.9vw;
+    margin-bottom: 0.3vw;
   }
   .jour-nom {
     display: table-cell;
@@ -136,8 +136,8 @@
     text-align: center;
   }
   .jour-icone .icone-svg {
-    width: 1.6vw;
-    height: 1.6vw;
+    width: 1.4vw;
+    height: 1.4vw;
     display: inline-block;
     vertical-align: middle;
   }
@@ -146,8 +146,8 @@
     vertical-align: middle;
     text-align: right;
     color: #6ea8fe;
-    font-size: 1.04vw;
-    padding-right: 0.45vw;
+    font-size: 0.84vw;
+    padding-right: 0.5vw;
   }
   .jour-temp {
     display: table-cell;
@@ -159,25 +159,25 @@
 
   /* Section des événements du jour sous les prévisions 7 jours */
   #evenements-du-jour {
-    margin-top: 0.75vw;
+    margin-top: 0.9vw;
     background: #181f26;
     border-radius: 0.5vw;
-    padding: 0.5vw 0.65vw;
+    padding: 0.6vw 0.7vw;
   }
   .events-jour-titre-section {
-    font-size: 1.18vw;
+    font-size: 0.98vw;
     font-weight: 700;
     color: #f4f6f8;
-    margin-bottom: 0.35vw;
+    margin-bottom: 0.42vw;
   }
   .carte-event-jour {
     background: #202933;
-    border-left: 0.28vw solid #6ea8fe;
+    border-left: 0.25vw solid #6ea8fe;
     border-radius: 0.35vw;
-    padding: 0.3vw 0.45vw;
-    margin-bottom: 0.28vw;
-    font-size: 1.05vw;
-    line-height: 1.22;
+    padding: 0.34vw 0.5vw;
+    margin-bottom: 0.32vw;
+    font-size: 0.86vw;
+    line-height: 1.25;
     white-space: normal;
     word-wrap: break-word;
   }
@@ -193,24 +193,24 @@
     color: #fff0b3;
   }
   .event-jour-meta {
-    font-size: 0.96vw;
+    font-size: 0.78vw;
     font-weight: 700;
     color: #cfd8e3;
     margin-right: 0.35vw;
   }
   .aucun-event-jour {
-    font-size: 1.02vw;
+    font-size: 0.84vw;
     color: #8b98a3;
-    padding: 0.15vw 0;
+    padding: 0.2vw 0;
   }
 
   /* Bloc planning 3 semaines x 7 jours */
   #pile {
     position: absolute;
-    top: 0.9vw;
-    right: 0.9vw;
-    bottom: 0.9vw;
-    left: 0.2vw;
+    top: 1vw;
+    right: 1.1vw;
+    bottom: 1vw;
+    left: 0.4vw;
   }
   .cal-bloc-unique {
     position: relative;
@@ -218,34 +218,34 @@
     height: 100%;
     background: #181f26;
     border-radius: 0.9vw;
-    padding: 0.85vw 0.95vw;
+    padding: 1vw 1.1vw;
   }
   .cal-entete {
-    margin-bottom: 0.45vw;
+    margin-bottom: 0.55vw;
     overflow: hidden;
   }
   .cal-titre-principal {
     float: left;
-    font-size: 1.85vw;
+    font-size: 1.65vw;
     font-weight: 700;
   }
   .legende {
     float: right;
-    font-size: 1.28vw;
-    margin-top: 0.22vw;
+    font-size: 1.1vw;
+    margin-top: 0.2vw;
   }
   .legende-item {
     display: inline-block;
-    margin-left: 1vw;
+    margin-left: 1.1vw;
     font-weight: 600;
   }
   .pastille {
-    width: 0.95vw;
-    height: 0.95vw;
+    width: 0.85vw;
+    height: 0.85vw;
     border-radius: 50%;
     display: inline-block;
     vertical-align: middle;
-    margin-right: 0.32vw;
+    margin-right: 0.35vw;
   }
   .pastille-capucine { background: #ff69b4; }
   .pastille-clemence { background: #ffd43b; }
@@ -255,29 +255,29 @@
     display: table;
     width: 100%;
     table-layout: fixed;
-    margin-bottom: 0.25vw;
+    margin-bottom: 0.3vw;
   }
   .jour-semaine-label {
     display: table-cell;
     text-align: center;
-    font-size: 1.2vw;
+    font-size: 1.05vw;
     font-weight: 700;
     color: #8b98a3;
     text-transform: uppercase;
-    padding: 0.12vw 0;
+    padding: 0.15vw 0;
   }
 
   #statut-calendrier {
     max-height: 4.5vw;
     overflow-y: auto;
-    margin-bottom: 0.2vw;
+    margin-bottom: 0.25vw;
   }
 
-  /* Hauteur explicite en vh compatible Safari iOS 9 */
+  /* Hauteur explicite en vh pour éviter le bug height: 100% dans display: table sur Safari iOS 9 */
   #zone-grille {
     position: relative;
     width: 100%;
-    height: 75vh;
+    height: 78vh;
   }
 
   #grille-4-semaines {
@@ -286,11 +286,11 @@
     height: 100%;
     table-layout: fixed;
     border-collapse: separate;
-    border-spacing: 0.3vw;
+    border-spacing: 0.36vw;
   }
   .ligne-semaine {
     display: table-row;
-    height: 24vh;
+    height: 25vh;
   }
   .case-jour {
     display: table-cell;
@@ -299,7 +299,7 @@
     background: #202933;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 0.5vw;
-    padding: 0.28vw 0.34vw;
+    padding: 0.32vw 0.4vw;
     overflow: hidden;
   }
   .case-jour.aujourd-hui {
@@ -309,10 +309,10 @@
   .case-jour.jour-passe { opacity: 0.65; }
   .case-entete-jour {
     overflow: hidden;
-    font-size: 1.18vw;
+    font-size: 0.95vw;
     color: #8b98a3;
     line-height: 1.15;
-    margin-bottom: 0.2vw;
+    margin-bottom: 0.22vw;
   }
   .numero-jour {
     float: left;
@@ -322,31 +322,31 @@
   .case-jour.aujourd-hui .numero-jour {
     background: #6ea8fe;
     color: #101418;
-    padding: 0.05vw 0.34vw;
+    padding: 0.06vw 0.34vw;
     border-radius: 0.28vw;
   }
   .mois-court {
     float: right;
-    font-size: 0.96vw;
+    font-size: 0.8vw;
     color: #8b98a3;
     text-transform: capitalize;
   }
   .case-evenements {
-    height: 18.5vh;
+    height: 19vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Puces d'événements agrandies */
+  /* Retour à la ligne automatique pour afficher le détail des RDV en entier */
   .event-puce {
-    font-size: 1.02vw;
-    line-height: 1.18;
-    padding: 0.16vw 0.28vw;
+    font-size: 0.82vw;
+    line-height: 1.22;
+    padding: 0.18vw 0.32vw;
     border-radius: 0.28vw;
     border-left: 0.24vw solid transparent;
     white-space: normal;
     word-wrap: break-word;
-    margin-bottom: 0.16vw;
+    margin-bottom: 0.18vw;
   }
   .event-puce.capucine {
     background: rgba(255, 105, 180, 0.18);
@@ -358,13 +358,13 @@
     border-left-color: #ffd43b;
     color: #fff0b3;
   }
-  .event-heure { font-weight: 700; margin-right: 0.2vw; }
+  .event-heure { font-weight: 700; margin-right: 0.22vw; }
   .cal-erreur {
     color: #ff8a80;
-    font-size: 1vw;
+    font-size: 0.85vw;
     background: rgba(229, 83, 61, 0.14);
     border: 1px solid rgba(229, 83, 61, 0.4);
-    padding: 0.3vw 0.55vw;
+    padding: 0.35vw 0.6vw;
     border-radius: 0.4vw;
     line-height: 1.25;
   }
@@ -525,7 +525,7 @@ function requeteViaRelaisJsonp(urlCible, callback) {
   (document.head || document.getElementsByTagName("head")[0] || document.body).appendChild(script);
 }
 
-/* Charge une ressource : tente XHR puis bascule sur JSONP (anciens navigateurs iOS 9) */
+/* Charge une ressource : tente XHR (PC récent) puis bascule sur JSONP (anciens navigateurs) */
 function chargerRessource(urlCible, utiliserRelaisPourXhr, callback) {
   var baseRelais = String(CONFIG.relaisAppsScript || "").replace(/^\s+|\s+$/g, "");
   var sep = baseRelais.indexOf("?") !== -1 ? "&" : "?";
@@ -671,6 +671,7 @@ function majMeteo() {
     "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
     "&timezone=" + encodeURIComponent(CONFIG.fuseauHoraire);
 
+  /* Tente Open-Meteo directement en XHR (PC récent), sinon passe par le relais JSONP */
   chargerRessource(url, false, function (err, texte) {
     if (err || !texte) {
       if (elErreur) {
@@ -1067,6 +1068,7 @@ function afficherEvenementsDuJour(evenementsParJour) {
 }
 
 function recupererIcs(url, callback) {
+  /* Passe par le relais en XHR (PC récent) avec repli automatique sur JSONP */
   chargerRessource(url, true, function (err, texte) {
     if (err) {
       callback(err, null);
@@ -1089,9 +1091,9 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
 
   if (erreurs.length > 0) {
     statutEl.innerHTML = '<div class="cal-erreur">Calendriers indisponibles : ' + erreurs.join(" \u2014 ") + ".</div>";
-    zoneGrille.style.height = "67vh";
+    zoneGrille.style.height = "70vh";
   } else {
-    zoneGrille.style.height = "75vh";
+    zoneGrille.style.height = "78vh";
   }
 
   var maintenant = new Date();
@@ -1099,7 +1101,7 @@ function construireGrillePlanning(evenementsParJour, erreurs) {
   var debutAujourdhui = debutJourLocal(maintenant);
   var lundiDepart = obtenirLundiSemaine(maintenant);
   var nbSemaines = Math.max(1, parseInt(CONFIG.nbSemainesPlanning, 10) || 3);
-  var hauteurLigneVh = Math.floor((erreurs.length > 0 ? 67 : 75) / nbSemaines) + "vh";
+  var hauteurLigneVh = Math.floor((erreurs.length > 0 ? 70 : 78) / nbSemaines) + "vh";
 
   for (var s = 0; s < nbSemaines; s++) {
     var ligneSemaine = document.createElement("div");
@@ -1196,5 +1198,7 @@ majPlanning4Semaines();
 setInterval(majPlanning4Semaines, 15 * 60 * 1000);
 setTimeout(function () { location.reload(); }, 3 * 60 * 60 * 1000);
 </script>
+</body>
+</html>
 </body>
 </html>
