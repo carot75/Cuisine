@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>Tableau cuisine</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,7 +42,13 @@
   }
 
   #colonne-gauche > div { padding: 12px 14px; }
-  #horloge { font-size: 66px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  #horloge {
+    font-size: 66px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    cursor: pointer;
+  }
   #date { font-size: 18px; color: #8b98a3; margin-top: 4px; text-transform: capitalize; }
 
   /* Bloc météo actuelle */
@@ -375,7 +384,7 @@
 
   <div id="colonne-gauche">
     <div>
-      <div id="horloge">--:--</div>
+      <div id="horloge" title="Toucher pour recharger la page">--:--</div>
       <div id="date"></div>
       <div id="meteo">
         <div id="meteo-ligne-principale">
@@ -1173,7 +1182,24 @@ function majPlanning4Semaines() {
 
 majPlanning4Semaines();
 setInterval(majPlanning4Semaines, 15 * 60 * 1000);
-setTimeout(function () { location.reload(); }, 3 * 60 * 60 * 1000);
+
+/* Force le téléchargement de la dernière version depuis GitHub (contourne le cache iOS 9) */
+function forcerMiseAJourPage() {
+  var baseUrl = window.location.href.split("?")[0];
+  window.location.replace(baseUrl + "?v=" + new Date().getTime());
+}
+
+/* Rechargement complet toutes les 3 heures */
+setTimeout(forcerMiseAJourPage, 3 * 60 * 60 * 1000);
+
+/* Permet de forcer la mise à jour manuellement en touchant l'horloge */
+var elHorlogeTap = document.getElementById("horloge");
+if (elHorlogeTap) {
+  elHorlogeTap.onclick = function () {
+    elHorlogeTap.style.opacity = "0.5";
+    forcerMiseAJourPage();
+  };
+}
 </script>
 </body>
 </html>
